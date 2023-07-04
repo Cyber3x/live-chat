@@ -11,23 +11,48 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.User = void 0;
 var typeorm_1 = require("typeorm");
+var bcrypt_1 = require("bcrypt");
 var User = exports.User = /** @class */ (function () {
     function User() {
     }
+    // @OneToMany(() => Message, (message) => message.sentBy)
+    // sentMessages!: Message[]
+    // @OneToMany(() => Message, (message) => message.sentTo)
+    // recievedMessages!: Message[]
+    User.prototype.hashPassword = function () {
+        var saltRounds = 10;
+        this.password = (0, bcrypt_1.hashSync)(this.password, saltRounds);
+    };
     __decorate([
         (0, typeorm_1.PrimaryGeneratedColumn)(),
         __metadata("design:type", Number)
     ], User.prototype, "id", void 0);
     __decorate([
-        (0, typeorm_1.Column)({
-            length: 100
-        }),
+        (0, typeorm_1.Column)({ length: 100, type: 'varchar' }),
         __metadata("design:type", String)
     ], User.prototype, "firstName", void 0);
     __decorate([
-        (0, typeorm_1.Column)("integer"),
-        __metadata("design:type", Number)
-    ], User.prototype, "age", void 0);
+        (0, typeorm_1.Column)({ length: 100, type: 'varchar' }),
+        __metadata("design:type", String)
+    ], User.prototype, "lastName", void 0);
+    __decorate([
+        (0, typeorm_1.Column)({ length: 100, type: 'varchar' }),
+        __metadata("design:type", String)
+    ], User.prototype, "email", void 0);
+    __decorate([
+        (0, typeorm_1.Column)('varchar'),
+        __metadata("design:type", String)
+    ], User.prototype, "password", void 0);
+    __decorate([
+        (0, typeorm_1.Column)('boolean'),
+        __metadata("design:type", Boolean)
+    ], User.prototype, "isOnline", void 0);
+    __decorate([
+        (0, typeorm_1.BeforeInsert)(),
+        __metadata("design:type", Function),
+        __metadata("design:paramtypes", []),
+        __metadata("design:returntype", void 0)
+    ], User.prototype, "hashPassword", null);
     User = __decorate([
         (0, typeorm_1.Entity)()
     ], User);
