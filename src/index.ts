@@ -1,6 +1,7 @@
 import * as express from 'express'
 import defaultRouter from './routes/routes'
 import { AppDataSource } from './data-source'
+import 'dotenv/config'
 
 AppDataSource.initialize()
     .then(() => {
@@ -11,10 +12,11 @@ AppDataSource.initialize()
     })
 
 const app = express()
-const PORT = 3000
-app.use(express.json())
 
+app.use(express.json())
 app.use('/', defaultRouter)
+
+const PORT = process.env.PORT
 
 app.listen(PORT, () => {
     console.log(`Example app listening on port ${PORT}`)
