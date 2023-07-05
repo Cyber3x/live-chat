@@ -13,7 +13,7 @@ export const register = async (req: Request, res: Response) => {
     })
 
     if (user) {
-        return res.json({ error: 'User already exists' }).status(400)
+        return res.status(400).json({ error: 'User already exists' })
     }
 
     const newUser = userRepository.create({ ...newUserData, isOnline: true })
@@ -24,6 +24,6 @@ export const register = async (req: Request, res: Response) => {
     delete outputUserData.password
 
     return res
-        .json({ message: 'User successfully created', data: outputUserData })
         .status(201)
+        .json({ message: 'User successfully created', data: outputUserData })
 }

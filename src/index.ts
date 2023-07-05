@@ -1,7 +1,8 @@
+import * as dotenv from 'dotenv'
+dotenv.config()
 import * as express from 'express'
-import defaultRouter from './routes/routes'
 import { AppDataSource } from './data-source'
-import 'dotenv/config'
+import defaultRouter from './routes/routes'
 
 AppDataSource.initialize()
     .then(() => {
@@ -15,6 +16,7 @@ const app = express()
 
 app.use(express.json())
 app.use('/', defaultRouter)
+// app.use(errorHandler)
 
 const PORT = process.env.PORT
 

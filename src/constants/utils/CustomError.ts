@@ -1,10 +1,25 @@
-export class CustomError<T> extends Error {
-    message: string
-    error?: T
+// FIXME: not used rn, doen't get caught properly
 
-    constructor(message: string, error?: T) {
-        super(message)
+type ErrorResponse = {
+    message: string
+    stack?: string
+}
+
+export class CustomError {
+    statusCode: number
+    message: string
+
+    constructor(statusCode: number, message: string) {
+        // super(message)
+
+        this.statusCode = statusCode
         this.message = message
-        this.error = error
+    }
+
+    get JSON(): ErrorResponse {
+        return {
+            message: 'hi',
+            // stack: this.stack,
+        }
     }
 }
