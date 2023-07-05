@@ -6,10 +6,11 @@
         "moduleResolution": "node",
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
-        "outDir": "build",                          
+        "outDir": "build",
         "rootDir": "src",
         "strict": true,
         "noImplicitAny": true,
+        "typeRoots": ["./src/types", "node_modules/@types"]
     },
     "include": ["src"],
     "exclude": ["node_modules"]
