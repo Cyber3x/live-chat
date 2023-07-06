@@ -2,6 +2,8 @@ import { Request, Response } from 'express'
 import { AppDataSource } from '../../data-source'
 import { User } from '../../entities/User'
 import { type TRegisterUserData } from '../../middleware/validation/auth/validatorRegister'
+import { TJWTPayload } from '../../types/JwtPayload'
+import { createJwtToken } from '../../constants/utils/createJwtToken'
 
 export const register = async (req: Request, res: Response) => {
     const userRepository = AppDataSource.getRepository(User)
@@ -16,14 +18,34 @@ export const register = async (req: Request, res: Response) => {
         return res.status(400).json({ error: 'User already exists' })
     }
 
-    const newUser = userRepository.create({ ...newUserData, isOnline: true })
+    const newUser = userRepository.create({
+        ...newUserData,
+        isOnline: true,
+        isLoggedIn: true,
+    })
     await userRepository.save(newUser)
 
-    const outputUserData: Partial<User> = { ...newUser }
+    const JwtPayload: TJWTPayload = {
+        id: newUser.id,
+        email: newUser.email,
+    }
 
-    delete outputUserData.password
+    try {
+        const token = createJwtToken(JwtPayload)
 
-    return res
-        .status(201)
-        .json({ message: 'User successfully created', data: outputUserData })
+        const outputUserData: Partial<User> = { ...newUser }
+
+        delete outputUserData.password
+
+        res.status(201).json({
+            message: 'User successfully created',
+            token,
+            data: outputUserData,
+        })
+    } catch (error) {
+        res.json(400).json({
+            message: "Token can't be created in register",
+            error,
+        })
+    }
 }

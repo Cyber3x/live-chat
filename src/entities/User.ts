@@ -26,8 +26,11 @@ export class User {
     @Column('varchar')
     password!: string
 
-    @Column('boolean')
+    @Column({ type: 'boolean' })
     isOnline!: boolean
+
+    @Column({ type: 'boolean' })
+    isLoggedIn!: boolean
 
     @Column()
     @CreateDateColumn()

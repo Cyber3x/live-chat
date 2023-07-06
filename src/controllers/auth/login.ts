@@ -42,7 +42,9 @@ export const login = async (req: Request, res: Response) => {
             token,
             user: outputUserData,
         })
-    } catch (err) {
-        return res.status(400).json({ error: "Token can't be created" })
+    } catch (error) {
+        return res
+            .status(400)
+            .json({ message: "Token can't be created", error })
     }
 }
