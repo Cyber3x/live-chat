@@ -2,7 +2,7 @@ import { Request, Response } from 'express'
 import { AppDataSource } from '../../data-source'
 import { User } from '../../entities/User'
 import { type TLoginUserData } from '../../middleware/validation/auth/validatorLogin'
-import { TJWTPayload } from '../../types/JwtPayload'
+import { TJWTPayload } from '../../@types/JwtPayload'
 import { createJwtToken } from '../../constants/utils/createJwtToken'
 
 export const login = async (req: Request, res: Response) => {

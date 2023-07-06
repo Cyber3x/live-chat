@@ -9,5 +9,8 @@ const router = Router()
 router.post('/register', [validatorRegister], register)
 router.post('/login', [validatorLogin], login)
 // router.get('/logout', logout)
+// TODO: loggin out currently is just removing the jwt from client
+// there is no state stored about the token on the server.
+// this can be done by checking if the user is currently logged in and has a valid token
 
 export default router
