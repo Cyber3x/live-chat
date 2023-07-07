@@ -1,16 +1,18 @@
 {
     "compilerOptions": {
         "lib": ["es5", "es6", "dom"],
-        "target": "es5",
+        "target": "ES6",
         "module": "commonjs",
         "moduleResolution": "node",
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
-        "outDir": "build",                          
+        "outDir": "build",
         "rootDir": "src",
         "strict": true,
         "noImplicitAny": true,
+        "typeRoots": ["@types", "./node_modules/@types"],
+        "skipLibCheck": true
     },
-    "include": ["src"],
+    "include": ["./src/**/*.ts"],
     "exclude": ["node_modules"]
 }

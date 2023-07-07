@@ -1,5 +1,13 @@
-import { BeforeInsert, Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
-import { hashSync } from 'bcrypt'
+import {
+    BeforeInsert,
+    Column,
+    CreateDateColumn,
+    Entity,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
+} from 'typeorm'
+import { hashSync, compareSync } from 'bcrypt'
+import { SALT_ROUNDS } from '../constants/auth'
 
 @Entity()
 export class User {
@@ -18,8 +26,19 @@ export class User {
     @Column('varchar')
     password!: string
 
-    @Column('boolean')
+    @Column({ type: 'boolean' })
     isOnline!: boolean
+
+    @Column({ type: 'boolean' })
+    isLoggedIn!: boolean
+
+    @Column()
+    @CreateDateColumn()
+    createdAt!: Date
+
+    @Column()
+    @UpdateDateColumn()
+    updatedAt!: Date
 
     // TODO: connect with messages after they are implemented
     // @OneToMany(() => Message, (message) => message.sentBy)
@@ -29,8 +48,11 @@ export class User {
     // recievedMessages!: Message[]
 
     @BeforeInsert()
-    hashPassword() {
-        const saltRounds = 10
-        this.password = hashSync(this.password, saltRounds)
+    private hashPassword() {
+        this.password = hashSync(this.password, SALT_ROUNDS)
+    }
+
+    checkIfPasswordMatch(unencryptedPassword: string) {
+        return compareSync(unencryptedPassword, this.password)
     }
 }
