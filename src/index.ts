@@ -1,8 +1,9 @@
 import * as dotenv from 'dotenv'
 dotenv.config()
-import * as express from 'express'
+import express from 'express'
 import { AppDataSource } from './data-source'
 import defaultRouter from './routes/routes'
+import cors from 'cors'
 
 AppDataSource.initialize()
     .then(() => {
@@ -14,6 +15,7 @@ AppDataSource.initialize()
 
 const app = express()
 
+app.use(cors())
 app.use(express.json())
 app.use('/', defaultRouter)
 // app.use(errorHandler)

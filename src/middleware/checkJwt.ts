@@ -5,7 +5,7 @@ import { TJWTPayload } from '../@types/JwtPayload'
 import { createJwtToken } from '../constants/utils/createJwtToken'
 
 export const checkJwt = (req: Request, res: Response, next: NextFunction) => {
-    const authHeader = req.get('Authorization')
+    const authHeader = req.headers.authorization
 
     if (!authHeader) {
         return res
