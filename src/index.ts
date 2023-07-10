@@ -1,9 +1,9 @@
 import * as dotenv from 'dotenv'
 dotenv.config()
-import * as express from 'express'
+import express from 'express'
 import { AppDataSource } from './data-source'
 import defaultRouter from './routes/routes'
-import * as cors from 'cors'
+import cors from 'cors'
 
 AppDataSource.initialize()
     .then(() => {
