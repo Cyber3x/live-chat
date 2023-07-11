@@ -31,6 +31,7 @@ export default function InputBar({ onSendMessage }: Props) {
         onKeyDown={(e) => handleKeyDown(e)}
         value={message}
         onChange={(e) => setMessage(e.target.value)}
+        autoFocus
       />
       <Button className="px-12" onClick={sendMessage}>
         Send <SendIcon className="h-4 w-4 ml-4 " />

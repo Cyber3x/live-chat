@@ -56,6 +56,7 @@ type TFormFieldData = {
   lable: string
   type: HTMLInputTypeAttribute
   placeholder?: string
+  autofocus?: boolean
 }
 
 type TRegisterFieldsData = { [K in keyof TRegisterData]: TFormFieldData }
@@ -99,6 +100,7 @@ const loginFieldsData: TLoginFieldsData = {
     type: "text",
     lable: "Email",
     placeholder: "pedro.dario@domain.com",
+    autofocus: true,
   },
   password: {
     type: "password",
@@ -108,6 +110,9 @@ const loginFieldsData: TLoginFieldsData = {
 }
 
 function RegisterForm() {
+  const { register } = useContext(AuthContext)
+  const navigate = useNavigate()
+
   const form = useForm<TRegisterData>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -120,8 +125,20 @@ function RegisterForm() {
     },
   })
 
-  function onSubmit(value: TRegisterData) {
-    console.log(value)
+  async function onSubmit(data: TRegisterData) {
+    const response = await register(data)
+    console.log(response)
+    if (response.ok) {
+      navigate("/chat", { replace: true })
+    } else {
+      const { message, target } = response
+
+      console.log(message)
+
+      form.setError(target, {
+        message,
+      })
+    }
   }
 
   return (
@@ -162,17 +179,20 @@ function LoginForm() {
   const form = useForm<TLoginData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      password: "",
-      email: "",
+      email: "@gmail.com",
+      password: "12345678",
     },
   })
 
   async function onSubmit(data: TLoginData) {
     const response = await login(data)
     if (response.ok) {
-      navigate("/chat")
+      navigate("/chat", { replace: true })
     } else {
-      console.log("erorrrror")
+      const { target, message } = response
+      form.setError(target, {
+        message,
+      })
     }
   }
 
@@ -189,6 +209,7 @@ function LoginForm() {
                 <FormLabel>{data.lable}</FormLabel>
                 <FormControl>
                   <Input
+                    autoFocus={data.autofocus}
                     placeholder={data.placeholder}
                     {...field}
                     type={data.type}
@@ -211,8 +232,8 @@ export function AuthPage(props: Props) {
   const navigate = useNavigate()
 
   return (
-    <div className="flex justify-center p-72 h-screen">
-      <Tabs defaultValue={props.selectedTab} className="w-[400px]">
+    <div className="flex justify-center pt-72 h-screen">
+      <Tabs defaultValue={props.selectedTab} className="w-96">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="register" onClick={() => navigate("/register")}>
             Register
