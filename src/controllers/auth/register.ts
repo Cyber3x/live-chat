@@ -4,6 +4,29 @@ import { User } from '../../entities/User'
 import { type TRegisterUserData } from '../../middleware/validation/auth/validatorRegister'
 import { TJWTPayload } from '../../@types/JwtPayload'
 import { createJwtToken } from '../../constants/utils/createJwtToken'
+import {
+    UserAlreadyExists,
+    EmailNotFound,
+    InvalidEmailOrPassword,
+    TokenCreationError,
+} from '../../constants/errorTypes'
+import { TUserData } from './login'
+
+export type TRegisterResponseOK = {
+    token: string
+    userData: TUserData
+}
+
+export type TRegisterErrorType =
+    | EmailNotFound
+    | InvalidEmailOrPassword
+    | TokenCreationError
+    | UserAlreadyExists
+
+export type TRegisterResponseError = {
+    type: TRegisterErrorType
+    message: string
+}
 
 export const register = async (req: Request, res: Response) => {
     const userRepository = AppDataSource.getRepository(User)
@@ -15,7 +38,12 @@ export const register = async (req: Request, res: Response) => {
     })
 
     if (user) {
-        return res.status(400).json({ error: 'User already exists' })
+        const response: TRegisterResponseError = {
+            message: 'User already exists',
+            type: 'auth/user-already-exists',
+        }
+
+        return res.status(400).json(response)
     }
 
     const newUser = userRepository.create({
@@ -33,19 +61,24 @@ export const register = async (req: Request, res: Response) => {
     try {
         const token = createJwtToken(JwtPayload)
 
-        const outputUserData: Partial<User> = { ...newUser }
+        const { id, firstName, lastName } = newUser
 
-        delete outputUserData.password
-
-        res.status(201).json({
-            message: 'User successfully created',
+        const response: TRegisterResponseOK = {
             token,
-            data: outputUserData,
-        })
+            userData: {
+                id,
+                firstName,
+                lastName,
+            },
+        }
+
+        res.status(201).json(response)
     } catch (error) {
-        res.json(400).json({
-            message: "Token can't be created in register",
-            error,
-        })
+        const response: TRegisterResponseError = {
+            message: "Token while registration can't be created",
+            type: 'token/error-while-creating',
+        }
+
+        res.json(400).json(response)
     }
 }
