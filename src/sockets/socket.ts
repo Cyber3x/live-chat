@@ -1,16 +1,21 @@
 import { Server as HTTPServer } from 'http'
-import { Server, ServerOptions } from 'socket.io'
-import { USERS_LIST_UPDATE } from './eventTypes/fromServer'
+import { Server, ServerOptions, Socket } from 'socket.io'
 import handleMessageEvents from './messageEvents'
-import handleUserEvents, { USERS } from './userEvents'
+import handleUserEvents, { allUsers } from './userEvents'
+import { ClientToServerEvents, ServerToClientEvents } from './eventTypes'
 
-export let io: Server
+export type TSocketServer = Server<ClientToServerEvents, ServerToClientEvents>
+export type TSocket = Socket<ClientToServerEvents, ServerToClientEvents>
+
+export let io: TSocketServer
 
 export const setupSocketIOServer = (
     httpServer: HTTPServer,
     options?: Partial<ServerOptions>
 ) => {
     io = new Server(httpServer, options)
+
+    console.clear()
 
     io
         // .use((socket, next) => {
@@ -28,7 +33,7 @@ export const setupSocketIOServer = (
             handleUserEvents(io, socket)
 
             socket.on('disconnect', () => {
-                USERS.forEach((user) => {
+                allUsers.forEach((user) => {
                     if (user.sockedID === socket.id) {
                         user.isOnline = false
                         console.log(
@@ -36,7 +41,7 @@ export const setupSocketIOServer = (
                         )
                     }
                 })
-                socket.broadcast.emit(USERS_LIST_UPDATE, { users: USERS })
+                socket.broadcast.emit('usersListUpdate', allUsers)
             })
         })
 }

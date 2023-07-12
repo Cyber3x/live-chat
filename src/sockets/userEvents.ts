@@ -1,55 +1,104 @@
-import { Socket, Server } from 'socket.io'
-import { NEW_CONNECTION, TNewConnectionPayload } from './eventTypes/fromClient'
 import { TUserData } from '../controllers/auth/login'
-import {
-    TUsersListUpdatePayload,
-    USERS_LIST_UPDATE,
-} from './eventTypes/fromServer'
+import { TSocket, TSocketServer } from './socket'
 
 export type TUserStatus = TUserData & { isOnline: boolean; sockedID: string }
 
-export const USERS: TUserStatus[] = []
+export type TMessage = {
+    message: string
+}
 
-const handleUserEvents = (io: Server, socket: Socket) => {
-    socket.on(NEW_CONNECTION, (data: TNewConnectionPayload) => {
+export type TChatRoom = {
+    name: string
+    id: number
+    users: TUserStatus[]
+    messages: TMessage[]
+    createdBy: TUserStatus
+}
+
+export const allUsers: TUserStatus[] = []
+
+export const chatRooms: TChatRoom[] = []
+
+function getUserById(id: number): TUserStatus {
+    const creator = allUsers.find((user) => id === user.id)
+
+    if (!creator) {
+        throw new Error(
+            "MAJOR ERROR, user was not found but. But he couldn't have gotten here if he doesn't exist"
+        )
+    }
+
+    return creator
+}
+
+let roomIdCounter = 0
+function getRoomId(): number {
+    roomIdCounter++
+    return roomIdCounter
+}
+
+const handleUserEvents = (io: TSocketServer, socket: TSocket) => {
+    socket.on('newConnection', (token, userData) => {
         // TODO: verify token
 
-        const userIndex = USERS.findIndex(({ id }) => data.userData.id === id)
+        const userIndex = allUsers.findIndex(({ id }) => userData.id === id)
 
         if (userIndex !== -1) {
             // user is already in the list
-            USERS[userIndex].isOnline = true
-            USERS[userIndex].sockedID = socket.id
-
-            const payload: TUsersListUpdatePayload = {
-                users: USERS,
-            }
+            allUsers[userIndex].isOnline = true
+            allUsers[userIndex].sockedID = socket.id
 
             console.log(
-                `User: ${USERS[userIndex].firstName} is now online!, sending update to everyone`
+                `User: ${allUsers[userIndex].firstName} is now online!, sending update to everyone`
             )
-            io.emit(USERS_LIST_UPDATE, payload)
+
+            io.emit('usersListUpdate', allUsers)
             return
         }
 
         // a new user need to be added to the list
         const newUser: TUserStatus = {
-            ...data.userData,
+            ...userData,
             isOnline: true,
             sockedID: socket.id,
         }
 
-        USERS.push(newUser)
+        allUsers.push(newUser)
 
-        const payload: TUsersListUpdatePayload = {
-            users: USERS,
+        console.log(
+            `Adding new user ${userData.firstName} and sending update to every one`
+        )
+
+        io.emit('usersListUpdate', allUsers)
+    })
+
+    socket.on('createChatRoom', (token, userData, chatRoomName, userIds) => {
+        // TODO: verify sender token
+
+        // FIXME: don't create a room if the room with same users exists
+
+        const newChatRoom: TChatRoom = {
+            createdBy: getUserById(userData.id),
+            // TODO: remove this and get the id from the database when the room is saved
+            id: getRoomId(),
+            messages: [],
+            name: chatRoomName,
+            users: userIds.map(getUserById),
         }
 
         console.log(
-            `Adding new user ${data.userData.firstName} and sending update to every one`
+            `User: ${
+                userData.firstName
+            } is creating a chat room with: ${newChatRoom.users
+                .map((user) => user.firstName)
+                .join(', ')}`
         )
 
-        io.emit(USERS_LIST_UPDATE, payload)
+        chatRooms.push(newChatRoom)
+
+        // TODO: ovo nema smisla slati svima, treba poslati korisnicima koji su samo
+        // u toj sobi
+        io.emit('chatRoomsListUpdate', chatRooms)
     })
 }
 
