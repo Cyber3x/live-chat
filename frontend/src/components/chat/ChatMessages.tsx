@@ -1,19 +1,17 @@
-import { TChatMessage } from "@/pages/ChatHome"
-import { ScrollArea } from "../ui/scroll-area"
+import { useContext } from "react"
 import ChatMessage from "./ChatMessage"
+import { ChatContext } from "./ChatProvider"
 
-type Props = {
-  messages: TChatMessage[]
-}
+export default function ChatMessages() {
+  const { messages } = useContext(ChatContext)
 
-export default function ChatMessages({ messages }: Props) {
   return (
-    <ScrollArea className="h-full pr-4 min-h-0 flex-1 items-end flex">
-      <div className="flex flex-col flex-1 pb-4 space-y-4 justify-end">
+    <div className="flex-1 overflow-scroll">
+      <div className="flex flex-1 h-full flex-col-reverse pb-4 pr-4 overflow-scroll">
         {messages.map((message, i) => (
           <ChatMessage message={message} key={i} />
         ))}
       </div>
-    </ScrollArea>
+    </div>
   )
 }

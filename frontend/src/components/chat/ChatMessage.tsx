@@ -1,17 +1,22 @@
 import { cn } from "@/lib/utils"
-import { TChatMessage } from "@/pages/ChatHome"
+import { TMessage } from "../../../../src/sockets/userEvents"
+import { AuthContext } from "../auth/AuthProvider"
+import { useContext } from "react"
 
 type Props = {
-  message: TChatMessage
+  message: TMessage
 }
 
 export default function ChatMessage({ message }: Props) {
-  const { isSentByMe, message: messageText, senderData } = message
+  const { message: messageText, senderData } = message
+  const { userData } = useContext(AuthContext)
+
+  const isSentByMe = senderData.id === userData.id
 
   return (
     <div
       className={cn(
-        "py-2 px-4 rounded-lg shadow-md",
+        "py-2 px-4 rounded-lg shadow-md mt-4 last-of-type:mt-0",
         isSentByMe
           ? "self-end bg-teal-700 text-white"
           : "self-start bg-gray-200"

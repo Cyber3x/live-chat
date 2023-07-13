@@ -36,6 +36,7 @@ type IAuthContext = {
   login: (data: TLoginData) => Promise<TLoginStatusResponse>
   register: (data: TRegisterData) => Promise<TRegisterStatusResponse>
   logout: () => void
+  getUserFullName: () => string
 }
 
 type TUserData = {
@@ -122,6 +123,8 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     return { ok: false, target, message }
   }
 
+  const getUserFullName = () => `${userData.firstName} ${userData.lastName}`
+
   // Function to log out a user
   // TODO: hit api logout endpoint to change isLogged value on user entity
   const logout = () => {
@@ -131,7 +134,15 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     redirect("/")
   }
 
-  const value = { isAuthenticated, login, logout, register, token, userData }
+  const value = {
+    isAuthenticated,
+    login,
+    logout,
+    register,
+    token,
+    userData,
+    getUserFullName,
+  }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

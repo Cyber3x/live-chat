@@ -5,6 +5,7 @@ import { ProtectedRoute } from "./components/auth/ProtectedRoute"
 import { AuthPage } from "./pages/AuthPage"
 import ChatHome from "./pages/ChatHome"
 import { LandingPage } from "./pages/LandingPage"
+import { ChatProvider } from "./components/chat/ChatProvider"
 
 const router = createBrowserRouter([
   {
@@ -32,7 +33,9 @@ const router = createBrowserRouter([
     path: "chat",
     element: (
       <ProtectedRoute>
-        <ChatHome />
+        <ChatProvider>
+          <ChatHome />
+        </ChatProvider>
       </ProtectedRoute>
     ),
   },

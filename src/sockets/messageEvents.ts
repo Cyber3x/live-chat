@@ -1,20 +1,45 @@
-import { Socket, Server } from 'socket.io'
-import { CLIENT_MESSAGE, TClientMessagePayload } from './eventTypes/fromClient'
-import { SERVER_MESSAGE, TServerMessagePayload } from './eventTypes/fromServer'
+import { TSocket, TSocketServer } from './socket'
+import { TMessage, chatRooms } from './userEvents'
 
-const handleMessageEvents = (io: Server, socket: Socket) => {
-    socket.on(CLIENT_MESSAGE, (data: TClientMessagePayload) => {
-        const { userData: senderData, message } = data
+export type TChatMessage = TMessage & { isSentByMe: boolean }
 
-        console.log(`${senderData.firstName} says: ${message}`)
+const handleMessageEvents = (io: TSocketServer, socket: TSocket) => {
+    socket.on('clientMessage', (token, senderData, message, targetRoomId) => {
+        // TODO: verify token
 
-        const payload: TServerMessagePayload = {
+        const newMessage: TMessage = {
             senderData,
             message,
             sentAt: new Date().toDateString(),
         }
 
-        socket.broadcast.emit(SERVER_MESSAGE, payload)
+        const targetRoom = chatRooms.find(
+            (chatRoom) => chatRoom.id === targetRoomId
+        )
+
+        // TODO: verify if room with that id exists, but it should :)
+        if (!targetRoom) {
+            throw new Error(
+                `target room with id: ${targetRoomId} not found. But we shouldn't be here`
+            )
+        }
+
+        targetRoom.messages.unshift(newMessage)
+
+        console.log(
+            `${senderData.firstName} in room: ${targetRoom.name} with ${targetRoom.allUsers.length} people says: ${message}`
+        )
+
+        targetRoom.allUsers.forEach((user) => {
+            io.to(user.socketId).emit(
+                'serverMessage',
+                {
+                    ...newMessage,
+                    isSentByMe: socket.id === user.socketId,
+                },
+                targetRoomId
+            )
+        })
     })
 }
 

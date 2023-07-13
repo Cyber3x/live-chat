@@ -24,7 +24,7 @@ export class User {
     email!: string
 
     @Column('varchar')
-    password!: string
+    private password!: string
 
     @Column({ type: 'boolean' })
     isOnline!: boolean
@@ -39,13 +39,6 @@ export class User {
     @Column()
     @UpdateDateColumn()
     updatedAt!: Date
-
-    // TODO: connect with messages after they are implemented
-    // @OneToMany(() => Message, (message) => message.sentBy)
-    // sentMessages!: Message[]
-
-    // @OneToMany(() => Message, (message) => message.sentTo)
-    // recievedMessages!: Message[]
 
     @BeforeInsert()
     private hashPassword() {
