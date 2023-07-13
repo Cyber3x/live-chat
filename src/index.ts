@@ -6,11 +6,20 @@ import express from 'express'
 import { Server } from 'http'
 
 import { AppDataSource } from './data-source'
+import { ChatRoom } from './entities/ChatRoom'
+import { ChatRoomUsers } from './entities/ChatRoomUsers'
 import defaultRouter from './routes/routes'
 import { setupSocketIOServer } from './sockets/socket'
 
 AppDataSource.initialize()
     .then(() => {
+        const chatRoom = new ChatRoom()
+        chatRoom.name = 'Global'
+
+        const chatRoomUsers = new ChatRoomUsers()
+        chatRoomUsers.lastReadAt = new Date()
+        // chatRoomUsers
+
         console.log('Data source has been initalized!')
     })
     .catch((err) => {

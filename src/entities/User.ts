@@ -3,16 +3,19 @@ import {
     Column,
     CreateDateColumn,
     Entity,
+    OneToMany,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm'
 import { hashSync, compareSync } from 'bcrypt'
 import { SALT_ROUNDS } from '../constants/auth'
+import { ChatRoomUsers } from './ChatRoomUsers'
+import { ChatRoom } from './ChatRoom'
 
 @Entity()
 export class User {
     @PrimaryGeneratedColumn()
-    id!: number
+    readonly id!: number
 
     @Column({ length: 100, type: 'varchar' })
     firstName!: string
@@ -26,6 +29,12 @@ export class User {
     @Column('varchar')
     private password!: string
 
+    @OneToMany(() => ChatRoomUsers, (chatRoomUsers) => chatRoomUsers.user)
+    chatRooms!: ChatRoomUsers[]
+
+    @OneToMany(() => ChatRoom, (chatRoom) => chatRoom.createdBy)
+    createdChatRooms!: ChatRoom[]
+
     @Column({ type: 'boolean' })
     isOnline!: boolean
 
@@ -34,11 +43,11 @@ export class User {
 
     @Column()
     @CreateDateColumn()
-    createdAt!: Date
+    readonly createdAt!: Date
 
     @Column()
     @UpdateDateColumn()
-    updatedAt!: Date
+    readonly updatedAt!: Date
 
     @BeforeInsert()
     private hashPassword() {
