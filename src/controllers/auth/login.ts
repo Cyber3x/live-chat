@@ -41,6 +41,7 @@ export const login = async (req: Request, res: Response) => {
     // FIXME: This error messages can be merget to be the same
     // this can prevent guessing of email adresses and passwords
     if (!user) {
+        // TODO: convert type to Enum and refacotr this to be an objec that is passed to error handler
         const response: TLoginResponseError = {
             message: 'Email not found.',
             type: 'auth/email-not-found',
