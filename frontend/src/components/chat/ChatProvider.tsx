@@ -101,9 +101,6 @@ export const ChatProvider = ({ children }: PropsWithChildren) => {
     }
 
     function onServerMessage(newMessage: TMessage, targetChatRoomId: number) {
-      console.log(
-        `message from: ${newMessage.senderData.firstName} in room: ${targetChatRoomId}. Message: ${newMessage.message}`
-      )
       setChatRooms((chatRooms) => {
         const newChatRooms = [...chatRooms]
         const targetRoomIndex = newChatRooms.findIndex(
@@ -196,7 +193,14 @@ export const ChatProvider = ({ children }: PropsWithChildren) => {
 
   function createChatRoom(chatRoomName: string, userIds: number[]) {
     if (chatRoomName.length === 0 || userIds.length === 0) return
-    socket.emit("createChatRoom", token, userData, chatRoomName, userIds)
+    socket.emit(
+      "createChatRoom",
+      token,
+      userData,
+      chatRoomName,
+      userIds,
+      (newChatRoomId) => setOpenedChatRoomId(newChatRoomId)
+    )
   }
 
   function openChatRoom(id: number) {

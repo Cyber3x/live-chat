@@ -27,6 +27,7 @@ export type ClientToServerEvents = {
         token: string,
         userData: TUserData,
         chatRoomName: string,
-        userIds: number[]
+        userIds: number[],
+        callback: (chatRoomId: number) => void
     ) => void
 }
