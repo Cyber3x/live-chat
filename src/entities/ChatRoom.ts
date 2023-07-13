@@ -20,5 +20,5 @@ export class ChatRoom {
     createdBy!: User
 
     @OneToMany(() => ChatRoomUsers, (chatRoomUsers) => chatRoomUsers.chatRoom)
-    users!: ChatRoomUsers[]
+    chatRoomUsers!: ChatRoomUsers[]
 }

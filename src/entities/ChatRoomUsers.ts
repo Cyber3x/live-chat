@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne } from 'typeorm'
+import { Column, Entity, ManyToOne, UpdateDateColumn } from 'typeorm'
 import { User } from './User'
 import { ChatRoom } from './ChatRoom'
 
@@ -7,9 +7,12 @@ export class ChatRoomUsers {
     @Column()
     lastReadAt!: Date
 
-    @ManyToOne(() => User, (user) => user.chatRooms)
+    @ManyToOne(() => User, (user) => user.chatRoomUsers)
     user!: User
 
-    @ManyToOne(() => ChatRoom, (chatRoom) => chatRoom.users)
+    @ManyToOne(() => ChatRoom, (chatRoom) => chatRoom.chatRoomUsers)
     chatRoom!: ChatRoom
+
+    @UpdateDateColumn({ type: 'timestamp' })
+    updatedAt!: Date
 }

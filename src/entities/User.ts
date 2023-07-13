@@ -30,7 +30,7 @@ export class User {
     private password!: string
 
     @OneToMany(() => ChatRoomUsers, (chatRoomUsers) => chatRoomUsers.user)
-    chatRooms!: ChatRoomUsers[]
+    chatRoomUsers!: ChatRoomUsers[]
 
     @OneToMany(() => ChatRoom, (chatRoom) => chatRoom.createdBy)
     createdChatRooms!: ChatRoom[]
