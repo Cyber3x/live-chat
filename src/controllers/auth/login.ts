@@ -45,7 +45,6 @@ export const login = async (req: Request, res: Response) => {
             message: 'Email not found.',
             type: 'auth/email-not-found',
         }
-
         return res.status(400).json(response)
     }
 

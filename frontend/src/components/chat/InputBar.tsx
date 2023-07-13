@@ -1,24 +1,23 @@
 import { SendIcon } from "lucide-react"
 import { Button } from "../ui/button"
 import { Input } from "../ui/input"
-import { KeyboardEvent, useRef, useState } from "react"
+import { KeyboardEvent, useContext, useRef, useState } from "react"
+import { ChatContext } from "./ChatProvider"
 
-type Props = {
-  onSendMessage: (message: string) => void
-}
-export default function InputBar({ onSendMessage }: Props) {
+export default function InputBar() {
   const [message, setMessage] = useState<string>("")
+  const { sendMessage } = useContext(ChatContext)
 
   const inputRef = useRef<HTMLInputElement>(null)
 
-  function sendMessage() {
-    onSendMessage(message)
+  function handleSendMessage() {
+    sendMessage(message)
     setMessage("")
   }
 
   function handleKeyDown(e: KeyboardEvent<HTMLInputElement>) {
     if (e.code === "Enter") {
-      sendMessage()
+      handleSendMessage()
     }
   }
 
@@ -33,7 +32,7 @@ export default function InputBar({ onSendMessage }: Props) {
         onChange={(e) => setMessage(e.target.value)}
         autoFocus
       />
-      <Button className="px-12" onClick={sendMessage}>
+      <Button className="px-12" onClick={handleSendMessage}>
         Send <SendIcon className="h-4 w-4 ml-4 " />
       </Button>
     </div>

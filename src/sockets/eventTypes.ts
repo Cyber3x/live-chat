@@ -1,19 +1,28 @@
 import { TUserData } from '../controllers/auth/login'
-import { TChatRoom, TUserStatus } from './userEvents'
+import ChatRoom from './ChatRoom'
+import { TChatMessage } from './messageEvents'
+import { TUserStatus } from './userEvents'
+
+export type TChatRoomsListEventType = 'pushAll' | 'add' | 'update' | 'remove'
+export type TUsersListEventType = 'pushAll' | 'add' | 'update' | 'remove'
 
 export type ServerToClientEvents = {
-    usersListUpdate: (users: TUserStatus[]) => void
-    serverMessage: (
-        senderData: TUserData,
-        message: string,
-        sendAt: string
+    usersListEvent: (type: TUsersListEventType, users: TUserStatus[]) => void
+    serverMessage: (message: TChatMessage, chatRoomId: number) => void
+    chatRoomsListEvent: (
+        type: TChatRoomsListEventType,
+        chatRooms: ChatRoom[]
     ) => void
-    chatRoomsListUpdate: (chatRooms: TChatRoom[]) => void
 }
 
 export type ClientToServerEvents = {
     newConnection: (token: string, userData: TUserData) => void
-    clientMessage: (token: string, userData: TUserData, message: string) => void
+    clientMessage: (
+        token: string,
+        senderData: TUserData,
+        message: string,
+        chatRoomId: number
+    ) => void
     createChatRoom: (
         token: string,
         userData: TUserData,

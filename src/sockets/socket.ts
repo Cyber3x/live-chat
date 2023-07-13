@@ -34,14 +34,16 @@ export const setupSocketIOServer = (
 
             socket.on('disconnect', () => {
                 allUsers.forEach((user) => {
-                    if (user.sockedID === socket.id) {
+                    if (user.socketId === socket.id) {
                         user.isOnline = false
                         console.log(
-                            `User: ${user.firstName} has disconnected with socketID: ${user.sockedID}`
+                            `User: ${user.firstName} has disconnected with socketID: ${user.socketId}`
                         )
+                        socket.broadcast.emit('usersListEvent', 'update', [
+                            user,
+                        ])
                     }
                 })
-                socket.broadcast.emit('usersListUpdate', allUsers)
             })
         })
 }

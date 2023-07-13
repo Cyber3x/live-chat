@@ -1,23 +1,18 @@
 import { TUserData } from '../controllers/auth/login'
+import ChatRoom from './ChatRoom'
 import { TSocket, TSocketServer } from './socket'
 
-export type TUserStatus = TUserData & { isOnline: boolean; sockedID: string }
+export type TUserStatus = TUserData & { isOnline: boolean; socketId: string }
 
 export type TMessage = {
     message: string
-}
-
-export type TChatRoom = {
-    name: string
-    id: number
-    users: TUserStatus[]
-    messages: TMessage[]
-    createdBy: TUserStatus
+    senderData: TUserData
+    sentAt: string
 }
 
 export const allUsers: TUserStatus[] = []
 
-export const chatRooms: TChatRoom[] = []
+export const chatRooms: ChatRoom[] = [new ChatRoom('Global', null, [])]
 
 function getUserById(id: number): TUserStatus {
     const creator = allUsers.find((user) => id === user.id)
@@ -31,45 +26,51 @@ function getUserById(id: number): TUserStatus {
     return creator
 }
 
-let roomIdCounter = 0
-function getRoomId(): number {
-    roomIdCounter++
-    return roomIdCounter
-}
-
 const handleUserEvents = (io: TSocketServer, socket: TSocket) => {
     socket.on('newConnection', (token, userData) => {
         // TODO: verify token
 
-        const userIndex = allUsers.findIndex(({ id }) => userData.id === id)
-
-        if (userIndex !== -1) {
-            // user is already in the list
-            allUsers[userIndex].isOnline = true
-            allUsers[userIndex].sockedID = socket.id
-
-            console.log(
-                `User: ${allUsers[userIndex].firstName} is now online!, sending update to everyone`
-            )
-
-            io.emit('usersListUpdate', allUsers)
-            return
-        }
-
-        // a new user need to be added to the list
         const newUser: TUserStatus = {
             ...userData,
             isOnline: true,
-            sockedID: socket.id,
+            socketId: socket.id,
+        }
+
+        // Push to user all rooms of whom he's a part of
+        const roomsWithThisUser = chatRooms.filter((chatRoom) =>
+            chatRoom.allUsers.map((u) => u.id).includes(userData.id)
+        )
+        if (roomsWithThisUser.length > 0) {
+            socket.emit('chatRoomsListEvent', 'pushAll', roomsWithThisUser)
+        }
+
+        const user = allUsers.find(({ id }) => userData.id === id)
+
+        if (user) {
+            // user is already in the list
+            user.isOnline = true
+            user.socketId = socket.id
+
+            console.log(
+                `User: ${user.firstName} is now online!, sending update to everyone`
+            )
+
+            socket.emit('usersListEvent', 'pushAll', allUsers)
+            socket.broadcast.emit('usersListEvent', 'update', [user])
+            return
         }
 
         allUsers.push(newUser)
 
+        // Add user to the global chat room
+        chatRooms[0].allUsers.push(newUser)
+
         console.log(
-            `Adding new user ${userData.firstName} and sending update to every one`
+            `Adding new user ${userData.firstName} to Global chat and sending update to every one`
         )
 
-        io.emit('usersListUpdate', allUsers)
+        socket.emit('usersListEvent', 'pushAll', allUsers)
+        socket.broadcast.emit('usersListEvent', 'add', [newUser])
     })
 
     socket.on('createChatRoom', (token, userData, chatRoomName, userIds) => {
@@ -77,28 +78,33 @@ const handleUserEvents = (io: TSocketServer, socket: TSocket) => {
 
         // FIXME: don't create a room if the room with same users exists
 
-        const newChatRoom: TChatRoom = {
-            createdBy: getUserById(userData.id),
-            // TODO: remove this and get the id from the database when the room is saved
-            id: getRoomId(),
-            messages: [],
-            name: chatRoomName,
-            users: userIds.map(getUserById),
-        }
+        const newChatRoom = new ChatRoom(
+            chatRoomName,
+            getUserById(userData.id),
+            userIds.map(getUserById)
+        )
 
         console.log(
             `User: ${
                 userData.firstName
-            } is creating a chat room with: ${newChatRoom.users
+            } is creating a chat room with: ${newChatRoom.allUsers
                 .map((user) => user.firstName)
                 .join(', ')}`
         )
 
+        newChatRoom.allUsers.forEach((user) => {
+            console.log(
+                `Adding user: ${user.firstName} to chatRoom: ${newChatRoom.name}`
+            )
+        })
+
         chatRooms.push(newChatRoom)
 
-        // TODO: ovo nema smisla slati svima, treba poslati korisnicima koji su samo
-        // u toj sobi
-        io.emit('chatRoomsListUpdate', chatRooms)
+        newChatRoom.allUsers.forEach((user) => {
+            io.to(user.socketId).emit('chatRoomsListEvent', 'add', [
+                newChatRoom,
+            ])
+        })
     })
 }
 
