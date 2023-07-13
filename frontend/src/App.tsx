@@ -1,16 +1,16 @@
 import { RouterProvider, createBrowserRouter } from "react-router-dom"
 import { AuthProvider } from "./components/auth/AuthProvider"
+import { NoAuthOnlyRoute } from "./components/auth/NoAuthOnlyRoute"
 import { ProtectedRoute } from "./components/auth/ProtectedRoute"
 import { AuthPage } from "./pages/AuthPage"
 import ChatHome from "./pages/ChatHome"
 import { LandingPage } from "./pages/LandingPage"
-import { NoAuthOnlyRoute } from "./components/auth/NoAuthOnlyRoute"
+import { ChatProvider } from "./components/chat/ChatProvider"
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <ChatHome />,
-    // element: <LandingPage />,
+    element: <LandingPage />,
     errorElement: <h1>404</h1>,
   },
   {
@@ -32,9 +32,11 @@ const router = createBrowserRouter([
   {
     path: "chat",
     element: (
-      // <ProtectedRoute>
-      <ChatHome />
-      // </ProtectedRoute>
+      <ProtectedRoute>
+        <ChatProvider>
+          <ChatHome />
+        </ChatProvider>
+      </ProtectedRoute>
     ),
   },
 ])

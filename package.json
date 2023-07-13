@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "pnpm exec nodemon",
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "rimraf ./build && tsc",
     "start": "pnpm run build && node build/index.js",
     "lint": "pnpm exec eslint src --ext .js,.ts"
@@ -21,6 +21,7 @@
     "jsonwebtoken": "^9.0.0",
     "pg": "^8.11.1",
     "reflect-metadata": "^0.1.13",
+    "socket.io": "^4.7.1",
     "typeorm": "^0.3.17",
     "zod": "^3.21.4"
   },
@@ -35,6 +36,7 @@
     "eslint-config-prettier": "^8.8.0",
     "rimraf": "^5.0.1",
     "ts-node": "^10.9.1",
+    "ts-node-dev": "^2.0.0",
     "typescript": "^5.1.6"
   }
 }

@@ -14,12 +14,6 @@ export class Message {
     @Column()
     message!: string
 
-    // @ManyToOne(() => User, (user) => user.sentMessages)
-    // sentBy!: User
-
-    // @ManyToOne(() => User, (user) => user.recievedMessages)
-    // sentTo!: User
-
     @Column('boolean')
     isRead!: boolean
 }
