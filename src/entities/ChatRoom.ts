@@ -1,4 +1,5 @@
 import {
+    BaseEntity,
     Column,
     Entity,
     ManyToOne,
@@ -7,18 +8,23 @@ import {
 } from 'typeorm'
 import { User } from './User'
 import { ChatRoomUsers } from './ChatRoomUsers'
+import { Message } from './Message'
 
 @Entity()
-export class ChatRoom {
+export class ChatRoom extends BaseEntity {
     @PrimaryGeneratedColumn()
     readonly id!: number
 
     @Column({ length: 50, type: 'varchar' })
     name!: string
 
-    @ManyToOne(() => User, (user) => user.id)
+    // createdby is NULL just in case that this is a global room created by the server
+    @ManyToOne(() => User, (user) => user.id, { nullable: true })
     createdBy!: User
 
     @OneToMany(() => ChatRoomUsers, (chatRoomUsers) => chatRoomUsers.chatRoom)
     chatRoomUsers!: ChatRoomUsers[]
+
+    @OneToMany(() => Message, (message) => message.chatRoom)
+    messages!: Message[]
 }

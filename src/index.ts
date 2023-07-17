@@ -6,25 +6,21 @@ import express from 'express'
 import { Server } from 'http'
 
 import { AppDataSource } from './data-source'
-import { ChatRoom } from './entities/ChatRoom'
-import { ChatRoomUsers } from './entities/ChatRoomUsers'
 import defaultRouter from './routes/routes'
 import { setupSocketIOServer } from './sockets/socket'
+import { bootstrapServerState } from './sockets/serverState'
 
-AppDataSource.initialize()
-    .then(() => {
-        const chatRoom = new ChatRoom()
-        chatRoom.name = 'Global'
+;(async () => {
+    try {
+        await AppDataSource.initialize()
 
-        const chatRoomUsers = new ChatRoomUsers()
-        chatRoomUsers.lastReadAt = new Date()
-        // chatRoomUsers
+        await bootstrapServerState()
 
         console.log('Data source has been initalized!')
-    })
-    .catch((err) => {
+    } catch (err) {
         console.error('error during data source initalization:', err)
-    })
+    }
+})()
 
 const app = express()
 

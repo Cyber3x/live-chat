@@ -1,17 +1,17 @@
 import { TUserData } from '../controllers/auth/login'
-import ChatRoom from './ChatRoom'
-import { TChatMessage } from './messageEvents'
-import { TUserStatus } from './userEvents'
+import { TMessage } from '../entities/Message'
+import { TUser } from '../entities/User'
+import ChatRoomSrvModel from './ChatRoomSrvModel'
 
 export type TChatRoomsListEventType = 'pushAll' | 'add' | 'update' | 'remove'
 export type TUsersListEventType = 'pushAll' | 'add' | 'update' | 'remove'
 
 export type ServerToClientEvents = {
-    usersListEvent: (type: TUsersListEventType, users: TUserStatus[]) => void
-    serverMessage: (message: TChatMessage, chatRoomId: number) => void
+    usersListEvent: (type: TUsersListEventType, users: TUser[]) => void
+    serverMessage: (message: TMessage, chatRoomId: number) => void
     chatRoomsListEvent: (
         type: TChatRoomsListEventType,
-        chatRooms: ChatRoom[]
+        chatRooms: ChatRoomSrvModel[]
     ) => void
 }
 
@@ -31,3 +31,10 @@ export type ClientToServerEvents = {
         callback: (chatRoomId: number) => void
     ) => void
 }
+
+export type SocketData = {
+    token: string
+    userData: TUserData
+}
+
+export type InterServerEvent = object
