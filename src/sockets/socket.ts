@@ -49,7 +49,7 @@ export const setupSocketIOServer = (
             handleUserEvents(io, socket)
 
             socket.on('disconnect', () => {
-                allUsers.forEach((user) => {
+                Array.from(allUsers.values()).forEach((user) => {
                     if (user.socketId === socket.id) {
                         user.isOnline = false
                         console.log(
