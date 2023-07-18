@@ -1,14 +1,13 @@
 import { cn } from "@/lib/utils"
 import { AuthContext } from "../auth/AuthProvider"
 import { useContext } from "react"
-import { TMessage } from "../../../../src/entities/Message"
+import { TMessage } from "@backend/entities/Message"
 
 type Props = {
   message: TMessage
 }
 
 export default function ChatMessage({ message }: Props) {
-
   const { message: messageText, senderData } = message
   const { userData } = useContext(AuthContext)
 

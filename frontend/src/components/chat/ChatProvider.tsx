@@ -8,13 +8,13 @@ import {
 import { AuthContext } from "../auth/AuthProvider"
 
 import { socket } from "@/socket"
-import { TMessage } from "../../../../src/entities/Message"
-import { TUser } from "../../../../src/entities/User"
-import ChatRoomSrvModel from "../../../../src/sockets/ChatRoomSrvModel"
+import ChatRoomSrvModel from "@backend/sockets/ChatRoomSrvModel"
 import {
   TChatRoomsListEventType,
   TUsersListEventType,
-} from "../../../../src/sockets/eventTypes"
+} from "@backend/sockets/eventTypes"
+import { TMessage } from "@backend/entities/Message"
+import { TUser } from "@backend/entities/User"
 
 export type TChatUser = TUser & { isCurrentlyOpen?: boolean }
 
@@ -38,7 +38,7 @@ export const ChatProvider = ({ children }: PropsWithChildren) => {
   const [messages, setMessages] = useState<TMessage[]>([])
 
   // current room users
-  const [users, setUsers] = useState<Map<number,TChatUser>>(new Map())
+  const [users, setUsers] = useState<Map<number, TChatUser>>(new Map())
 
   // all users chat rooms
   const [chatRooms, setChatRooms] = useState<ChatRoomSrvModel[]>([])
@@ -70,19 +70,19 @@ export const ChatProvider = ({ children }: PropsWithChildren) => {
       // console.log(type, newUsers)
       const updatedUsers = new Map(users)
       switch (type) {
-        case "pushAll": 
+        case "pushAll":
         case "add":
         case "update": {
-          newUsers.forEach(user => {
+          newUsers.forEach((user) => {
             updatedUsers.set(user.id, user)
           })
           break
         }
         case "remove": {
-          newUsers.forEach(user => {
+          newUsers.forEach((user) => {
             updatedUsers.delete(user.id)
           })
-          
+
           break
         }
         default:
@@ -93,7 +93,9 @@ export const ChatProvider = ({ children }: PropsWithChildren) => {
 
     function onServerMessage(newMessage: TMessage, targetChatRoomId: number) {
       console.log(newMessage)
-      console.log(`User ${newMessage.senderData.firstName} send mes: ${newMessage.message} to room id: ${targetChatRoomId}`)
+      console.log(
+        `User ${newMessage.senderData.firstName} send mes: ${newMessage.message} to room id: ${targetChatRoomId}`
+      )
 
       setChatRooms((chatRooms) => {
         const newChatRooms = [...chatRooms]
@@ -173,7 +175,10 @@ export const ChatProvider = ({ children }: PropsWithChildren) => {
     )
     if (targetChatRooms.length < 1) {
       setMessages([])
-      console.error(`room with id: ${openedChatRoomId} not found in chat rooms:`, chatRooms)
+      console.error(
+        `room with id: ${openedChatRoomId} not found in chat rooms:`,
+        chatRooms
+      )
     } else if (targetChatRooms.length === 1) {
       setMessages(targetChatRooms[0].messages)
       console.log("target room foumd. setting messages")
@@ -203,7 +208,6 @@ export const ChatProvider = ({ children }: PropsWithChildren) => {
         console.log("selecting new room", newChatRoomId)
         setOpenedChatRoomId(newChatRoomId)
       }
-        
     )
   }
 
