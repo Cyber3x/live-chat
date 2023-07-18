@@ -8,14 +8,19 @@ import { Server } from 'http'
 import { AppDataSource } from './data-source'
 import defaultRouter from './routes/routes'
 import { setupSocketIOServer } from './sockets/socket'
+import { bootstrapServerState } from './sockets/serverState'
 
-AppDataSource.initialize()
-    .then(() => {
+;(async () => {
+    try {
+        await AppDataSource.initialize()
+
+        await bootstrapServerState()
+
         console.log('Data source has been initalized!')
-    })
-    .catch((err) => {
+    } catch (err) {
         console.error('error during data source initalization:', err)
-    })
+    }
+})()
 
 const app = express()
 

@@ -1,11 +1,27 @@
 import { Server as HTTPServer } from 'http'
 import { Server, ServerOptions, Socket } from 'socket.io'
 import handleMessageEvents from './messageEvents'
-import handleUserEvents, { allUsers } from './userEvents'
-import { ClientToServerEvents, ServerToClientEvents } from './eventTypes'
+import handleUserEvents from './userEvents'
+import {
+    ClientToServerEvents,
+    InterServerEvent,
+    ServerToClientEvents,
+    SocketData,
+} from './eventTypes'
+import { allUsers } from './serverState'
 
-export type TSocketServer = Server<ClientToServerEvents, ServerToClientEvents>
-export type TSocket = Socket<ClientToServerEvents, ServerToClientEvents>
+export type TSocketServer = Server<
+    ClientToServerEvents,
+    ServerToClientEvents,
+    InterServerEvent,
+    SocketData
+>
+export type TSocket = Socket<
+    ClientToServerEvents,
+    ServerToClientEvents,
+    InterServerEvent,
+    SocketData
+>
 
 export let io: TSocketServer
 

@@ -8,21 +8,22 @@ import {
 import { AuthContext } from "../auth/AuthProvider"
 
 import { socket } from "@/socket"
-import { TMessage, TUserStatus } from "../../../../src/sockets/userEvents"
+import { TMessage } from "../../../../src/entities/Message"
+import { TUser } from "../../../../src/entities/User"
+import ChatRoomSrvModel from "../../../../src/sockets/ChatRoomSrvModel"
 import {
   TChatRoomsListEventType,
   TUsersListEventType,
 } from "../../../../src/sockets/eventTypes"
-import ChatRoom from "../../../../src/sockets/ChatRoom"
 
-export type TChatUser = TUserStatus & { isCurrentlyOpen?: boolean }
+export type TChatUser = TUser & { isCurrentlyOpen?: boolean }
 
 type TChatContext = {
   openChatRoom: (id: number) => void
   openedChatRoomId: number
-  chatRooms: ChatRoom[]
+  chatRooms: ChatRoomSrvModel[]
   messages: TMessage[]
-  users: TChatUser[]
+  users: Map<number, TChatUser>
   sendMessage: (message: string) => void
   createChatRoom: (chatRoomName: string, users: number[]) => void
   getOtherUsers: () => TChatUser[]
@@ -37,10 +38,10 @@ export const ChatProvider = ({ children }: PropsWithChildren) => {
   const [messages, setMessages] = useState<TMessage[]>([])
 
   // current room users
-  const [users, setUsers] = useState<TChatUser[]>([])
+  const [users, setUsers] = useState<Map<number,TChatUser>>(new Map())
 
   // all users chat rooms
-  const [chatRooms, setChatRooms] = useState<ChatRoom[]>([])
+  const [chatRooms, setChatRooms] = useState<ChatRoomSrvModel[]>([])
 
   // currently open chat room
   const [openedChatRoomId, setOpenedChatRoomId] = useState<number>(0)
@@ -63,36 +64,24 @@ export const ChatProvider = ({ children }: PropsWithChildren) => {
   useEffect(() => {
     function onUsersListUpdate(
       type: TUsersListEventType,
-      newUsers: TUserStatus[]
+      newUsers: TChatUser[]
     ) {
       // console.log("Current users before", type, users)
       // console.log(type, newUsers)
       switch (type) {
-        case "pushAll": {
-          setUsers(newUsers)
-          break
-        }
-        case "add": {
-          setUsers((currentUsers) => [...currentUsers, ...newUsers])
-          break
-        }
+        case "pushAll": 
+        case "add":
         case "update": {
-          // delete and add
-          setUsers((currentUsers) => [
-            ...currentUsers.filter(
-              (user) => !newUsers.map((u) => u.id).includes(user.id)
-            ),
-            ...newUsers,
-          ])
+          newUsers.forEach(user => {
+            users.set(user.id, user)
+          })
           break
         }
         case "remove": {
-          console.log("removeUser")
-          setUsers((currentUsers) =>
-            currentUsers.filter(
-              (user) => !newUsers.map((u) => u.id).includes(user.id)
-            )
-          )
+          newUsers.forEach(user => {
+            users.delete(user.id)
+          })
+          
           break
         }
         default:
@@ -101,6 +90,9 @@ export const ChatProvider = ({ children }: PropsWithChildren) => {
     }
 
     function onServerMessage(newMessage: TMessage, targetChatRoomId: number) {
+      console.log(newMessage)
+      console.log(`User ${newMessage.senderData.firstName} send mes: ${newMessage.message} to room id: ${targetChatRoomId}`)
+
       setChatRooms((chatRooms) => {
         const newChatRooms = [...chatRooms]
         const targetRoomIndex = newChatRooms.findIndex(
@@ -123,9 +115,11 @@ export const ChatProvider = ({ children }: PropsWithChildren) => {
 
     function onChatRoomsListEvent(
       type: TChatRoomsListEventType,
-      newChatRooms: ChatRoom[]
+      newChatRooms: ChatRoomSrvModel[]
     ) {
       const newChatRoomIds = newChatRooms.map((chatRoom) => chatRoom.id)
+
+      console.log(`${type}`, newChatRooms)
 
       switch (type) {
         case "pushAll": {
@@ -169,7 +163,7 @@ export const ChatProvider = ({ children }: PropsWithChildren) => {
       socket.off("serverMessage", onServerMessage)
       socket.off("chatRoomsListEvent", onChatRoomsListEvent)
     }
-  }, [])
+  }, [users])
 
   useEffect(() => {
     const targetChatRooms = chatRooms.filter(
@@ -177,8 +171,10 @@ export const ChatProvider = ({ children }: PropsWithChildren) => {
     )
     if (targetChatRooms.length < 1) {
       setMessages([])
+      console.error(`room with id: ${openedChatRoomId} not found in chat rooms:`, chatRooms)
     } else if (targetChatRooms.length === 1) {
       setMessages(targetChatRooms[0].messages)
+      console.log("target room foumd. setting messages")
     } else {
       setMessages([])
       console.error("found multiple rooms with same id", targetChatRooms)
@@ -187,6 +183,8 @@ export const ChatProvider = ({ children }: PropsWithChildren) => {
 
   function sendMessage(message: string) {
     if (message.length === 0) return
+
+    console.log("sending message", message, openedChatRoomId, chatRooms)
 
     socket.emit("clientMessage", token, userData, message, openedChatRoomId)
   }
@@ -199,7 +197,11 @@ export const ChatProvider = ({ children }: PropsWithChildren) => {
       userData,
       chatRoomName,
       userIds,
-      (newChatRoomId) => setOpenedChatRoomId(newChatRoomId)
+      (newChatRoomId) => {
+        console.log("selecting new room", newChatRoomId)
+        setOpenedChatRoomId(newChatRoomId)
+      }
+        
     )
   }
 
@@ -213,7 +215,7 @@ export const ChatProvider = ({ children }: PropsWithChildren) => {
    * Returns all users that are not the current user
    */
   function getOtherUsers() {
-    return users.filter((user) => user.id !== userData.id)
+    return Array.from(users.values()).filter((user) => user.id !== userData.id)
   }
 
   const value: TChatContext = {

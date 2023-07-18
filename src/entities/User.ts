@@ -1,18 +1,34 @@
 import {
+    BaseEntity,
     BeforeInsert,
     Column,
     CreateDateColumn,
     Entity,
+    OneToMany,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm'
 import { hashSync, compareSync } from 'bcrypt'
 import { SALT_ROUNDS } from '../constants/auth'
+import { ChatRoomUsers } from './ChatRoomUsers'
+import { ChatRoom } from './ChatRoom'
+import { Message } from './Message'
 
+/**
+ * This is the object that's send to the client and that's stored in servers memory for chat managment
+ */
+export type TUser = {
+    id: number
+    firstName: string
+    lastName: string
+    isOnline: boolean
+    socketId?: string
+    isLoggedIn: boolean
+}
 @Entity()
-export class User {
+export class User extends BaseEntity {
     @PrimaryGeneratedColumn()
-    id!: number
+    readonly id!: number
 
     @Column({ length: 100, type: 'varchar' })
     firstName!: string
@@ -26,6 +42,15 @@ export class User {
     @Column('varchar')
     private password!: string
 
+    @OneToMany(() => ChatRoomUsers, (chatRoomUsers) => chatRoomUsers.user)
+    chatRoomUsers!: ChatRoomUsers[]
+
+    @OneToMany(() => ChatRoom, (chatRoom) => chatRoom.createdBy)
+    createdChatRooms!: ChatRoom[]
+
+    @OneToMany(() => Message, (message) => message.sentBy)
+    sentMessages!: Message[]
+
     @Column({ type: 'boolean' })
     isOnline!: boolean
 
@@ -33,12 +58,12 @@ export class User {
     isLoggedIn!: boolean
 
     @Column()
-    @CreateDateColumn()
-    createdAt!: Date
+    @CreateDateColumn({ type: 'timestamp' })
+    readonly createdAt!: Date
 
     @Column()
-    @UpdateDateColumn()
-    updatedAt!: Date
+    @UpdateDateColumn({ type: 'timestamp' })
+    readonly updatedAt!: Date
 
     @BeforeInsert()
     private hashPassword() {
@@ -47,5 +72,16 @@ export class User {
 
     checkIfPasswordMatch(unencryptedPassword: string) {
         return compareSync(unencryptedPassword, this.password)
+    }
+
+    get publicVersion(): TUser {
+        return {
+            id: this.id,
+            firstName: this.firstName,
+            lastName: this.lastName,
+            isLoggedIn: this.isLoggedIn,
+            isOnline: this.isOnline,
+            socketId: '',
+        }
     }
 }
