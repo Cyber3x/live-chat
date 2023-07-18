@@ -68,18 +68,19 @@ export const ChatProvider = ({ children }: PropsWithChildren) => {
     ) {
       // console.log("Current users before", type, users)
       // console.log(type, newUsers)
+      const updatedUsers = new Map(users)
       switch (type) {
         case "pushAll": 
         case "add":
         case "update": {
           newUsers.forEach(user => {
-            users.set(user.id, user)
+            updatedUsers.set(user.id, user)
           })
           break
         }
         case "remove": {
           newUsers.forEach(user => {
-            users.delete(user.id)
+            updatedUsers.delete(user.id)
           })
           
           break
@@ -87,6 +88,7 @@ export const ChatProvider = ({ children }: PropsWithChildren) => {
         default:
           console.error("Unhandled usersListUpdate type:", type)
       }
+      setUsers(updatedUsers)
     }
 
     function onServerMessage(newMessage: TMessage, targetChatRoomId: number) {
