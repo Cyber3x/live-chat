@@ -5,7 +5,7 @@ import {
     InvalidEmailOrPassword,
     TokenCreationError,
 } from '../../constants/errorTypes'
-import { createJwtToken } from '../../constants/utils/createJwtToken'
+import { createJwtToken } from '../../utils/createJwtToken'
 import { AppDataSource } from '../../data-source'
 import { User } from '../../entities/User'
 import { type TLoginUserData } from '../../middleware/validation/auth/validatorLogin'
