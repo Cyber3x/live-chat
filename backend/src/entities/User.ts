@@ -68,7 +68,7 @@ export class User extends BaseEntity {
     private hashPassword() {
         this.password = hashSync(
             this.password,
-            parseInt(process.env.JWT_SALT_ROUNDS)
+            parseInt(process.env.JWT_SALT_ROUNDS as string)
         )
     }
 

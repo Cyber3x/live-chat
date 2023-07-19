@@ -2,7 +2,6 @@ import { Request, Response } from 'express'
 import { AppDataSource } from '../../data-source'
 import { User } from '../../entities/User'
 import { type TRegisterUserData } from '../../middleware/validation/auth/validatorRegister'
-import { TJWTPayload } from '../../@types/JwtPayload'
 import { createJwtToken } from '../../utils/createJwtToken'
 import {
     UserAlreadyExists,
@@ -11,6 +10,7 @@ import {
     TokenCreationError,
 } from '../../constants/errorTypes'
 import { TUserData } from './login'
+import { TJWTPayload } from '../../types/JwtPayload'
 
 export type TRegisterResponseOK = {
     token: string
