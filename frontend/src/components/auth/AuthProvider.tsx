@@ -6,12 +6,12 @@ import { redirect } from "react-router-dom"
 import {
   type TLoginResponseError,
   type TLoginResponseOK,
-} from "../../../../src/controllers/auth/login"
+} from "@backend/controllers/auth/login"
 
 import {
   type TRegisterResponseError,
   type TRegisterResponseOK,
-} from "../../../../src/controllers/auth/register"
+} from "@backend/controllers/auth/register"
 
 type TLoginStatusResponse =
   | { ok: true }
