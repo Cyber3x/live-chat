@@ -14,5 +14,6 @@ COPY . .
 RUN pnpm build
 
 EXPOSE 4000
+EXPOSE 5432
 
 CMD [ "node", "build/index.js" ]
