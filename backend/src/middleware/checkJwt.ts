@@ -2,7 +2,7 @@ import 'dotenv/config'
 import { NextFunction, Response, Request } from 'express'
 import jwt = require('jsonwebtoken')
 import { TJWTPayload } from '../@types/JwtPayload'
-import { createJwtToken } from '../constants/utils/createJwtToken'
+import { createJwtToken } from '../utils/createJwtToken'
 
 export const checkJwt = (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization

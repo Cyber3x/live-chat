@@ -3,7 +3,7 @@ import { AppDataSource } from '../../data-source'
 import { User } from '../../entities/User'
 import { type TRegisterUserData } from '../../middleware/validation/auth/validatorRegister'
 import { TJWTPayload } from '../../@types/JwtPayload'
-import { createJwtToken } from '../../constants/utils/createJwtToken'
+import { createJwtToken } from '../../utils/createJwtToken'
 import {
     UserAlreadyExists,
     EmailNotFound,
