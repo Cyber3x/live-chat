@@ -9,7 +9,6 @@ import {
     UpdateDateColumn,
 } from 'typeorm'
 import { hashSync, compareSync } from 'bcrypt'
-import { SALT_ROUNDS } from '../constants/auth'
 import { ChatRoomUsers } from './ChatRoomUsers'
 import { ChatRoom } from './ChatRoom'
 import { Message } from './Message'
@@ -67,7 +66,10 @@ export class User extends BaseEntity {
 
     @BeforeInsert()
     private hashPassword() {
-        this.password = hashSync(this.password, SALT_ROUNDS)
+        this.password = hashSync(
+            this.password,
+            parseInt(process.env.JWT_SALT_ROUNDS as string)
+        )
     }
 
     checkIfPasswordMatch(unencryptedPassword: string) {

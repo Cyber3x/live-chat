@@ -1,5 +1,4 @@
-import * as dotenv from 'dotenv'
-dotenv.config()
+import 'dotenv/config'
 
 import cors from 'cors'
 import express from 'express'
@@ -9,11 +8,24 @@ import { AppDataSource } from './data-source'
 import defaultRouter from './routes/routes'
 import { setupSocketIOServer } from './sockets/socket'
 import { bootstrapServerState } from './sockets/serverState'
-
+let retryTries = 5
 ;(async () => {
     try {
-        await AppDataSource.initialize()
-
+        while (retryTries > 0) {
+            try {
+                await AppDataSource.initialize()
+                console.log('Backned connected to DB')
+                break
+            } catch (error) {
+                retryTries--
+                console.log(
+                    'Connection to DB Failed, waiting 5 secs, retries left:',
+                    retryTries,
+                    error
+                )
+                await new Promise((resolve) => setTimeout(resolve, 5000))
+            }
+        }
         await bootstrapServerState()
 
         console.log('Data source has been initalized!')
@@ -28,7 +40,7 @@ const httpServer = new Server(app)
 
 setupSocketIOServer(httpServer, {
     cors: {
-        origin: 'http://localhost:5173',
+        origin: 'http://localhost:3000',
     },
 })
 

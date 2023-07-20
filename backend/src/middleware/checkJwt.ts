@@ -1,8 +1,8 @@
 import 'dotenv/config'
 import { NextFunction, Response, Request } from 'express'
 import jwt = require('jsonwebtoken')
-import { TJWTPayload } from '../@types/JwtPayload'
-import { createJwtToken } from '../constants/utils/createJwtToken'
+import { createJwtToken } from '../utils/createJwtToken'
+import { TJWTPayload } from '../types/JwtPayload'
 
 export const checkJwt = (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization
@@ -22,7 +22,7 @@ export const checkJwt = (req: Request, res: Response, next: NextFunction) => {
     try {
         jwtPayloadRaw = jwt.verify(
             token,
-            process.env.JWT_TOKEN_SECRET
+            process.env.JWT_TOKEN_SECRET as string
         ) as TJwtPayloadRaw
         ;['iat', 'exp'].forEach((key) => delete jwtPayloadRaw[key])
         jwtPayload = jwtPayloadRaw as unknown as TJWTPayload
