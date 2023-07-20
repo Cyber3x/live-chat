@@ -52,8 +52,6 @@ const saveMessage = async (
         sentAt: newMessage.createdAt,
     }
 
-    console.log('messgeenvets ln 55:', newMessage)
-
     return newMessagePublic
 }
 

@@ -221,7 +221,7 @@ function LoginForm() {
           />
         ))}
         <Button type="submit" className="px-10">
-          Register
+          Login
         </Button>
       </form>
     </Form>
