@@ -56,6 +56,9 @@ export class User extends BaseEntity {
     @Column({ type: 'boolean' })
     isLoggedIn!: boolean
 
+    @Column({ type: 'boolean', default: false })
+    readonly isEmailVerified!: boolean
+
     @Column()
     @CreateDateColumn({ type: 'timestamp' })
     readonly createdAt!: Date

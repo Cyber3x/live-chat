@@ -1,8 +1,8 @@
 import 'dotenv/config'
 import { NextFunction, Response, Request } from 'express'
 import jwt = require('jsonwebtoken')
-import { createJwtToken } from '../utils/createJwtToken'
 import { TJWTPayload } from '../types/JwtPayload'
+import { createJwtToken } from '../utils/createJwtToken'
 
 export const checkJwt = (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization
@@ -26,14 +26,22 @@ export const checkJwt = (req: Request, res: Response, next: NextFunction) => {
         ) as TJwtPayloadRaw
         ;['iat', 'exp'].forEach((key) => delete jwtPayloadRaw[key])
         jwtPayload = jwtPayloadRaw as unknown as TJWTPayload
+
+        if (jwtPayload.type !== 'api-key') {
+            return res.status(400).json({ message: 'JWT wrong token type' })
+        }
+
         req.jwtPayload = jwtPayload
     } catch (error) {
-        return res.status(401).json({ message: 'JWT validation failed', error })
+        return res.status(400).json({ message: 'JWT validation failed', error })
     }
 
     try {
         // Refresh and send a new token on every request
-        const newToken = createJwtToken(jwtPayload)
+        const newToken = createJwtToken(
+            jwtPayload,
+            process.env.JWT_EXPIRATION as string
+        )
         res.setHeader('token', `Bearer ${newToken}`)
         return next()
     } catch (error) {

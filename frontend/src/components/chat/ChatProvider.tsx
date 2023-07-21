@@ -15,6 +15,7 @@ import {
 } from "@backend/sockets/eventTypes"
 import { TMessage } from "@backend/entities/Message"
 import { TUser } from "@backend/entities/User"
+import { useToast } from "../ui/use-toast"
 
 export type TChatUser = TUser & { isCurrentlyOpen?: boolean }
 
@@ -33,6 +34,7 @@ export const ChatContext = createContext<TChatContext>(null!)
 
 export const ChatProvider = ({ children }: PropsWithChildren) => {
   const { userData, token } = useContext(AuthContext)
+  const { toast } = useToast()
 
   // current room messages
   const [messages, setMessages] = useState<TMessage[]>([])
@@ -58,7 +60,15 @@ export const ChatProvider = ({ children }: PropsWithChildren) => {
   // Send inital credentials
   useEffect(() => {
     socket.emit("newConnection", token, userData)
-  }, [token, userData])
+
+    if (!userData.isEmailVerified) {
+      toast({
+        title: "Please verify your email",
+        description:
+          "Go to your email service and confirm your email. This will allow you more access to the applicaiton.",
+      })
+    }
+  }, [token, userData, toast])
 
   // Register event handlers
   useEffect(() => {

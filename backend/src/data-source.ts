@@ -10,7 +10,7 @@ export const AppDataSource = new DataSource({
     password: process.env.PG_PASSWORD?.toString(),
     database: process.env.PG_DATABASE,
     synchronize: true,
-    logging: true,
+    logging: false,
     entities: [join(__dirname, 'entities', '*.{ts,js}')],
     migrations: [join(__dirname, 'migrations', '*.{ts,js}')],
 })

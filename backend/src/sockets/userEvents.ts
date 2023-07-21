@@ -44,7 +44,7 @@ const handleUserEvents = (io: TSocketServer, socket: TSocket) => {
             chatRoom.userIds.includes(userData.id)
         )
 
-        console.log(roomsWithThisUser)
+        // console.log(roomsWithThisUser)
         if (roomsWithThisUser.length > 0) {
             socket.emit('chatRoomsListEvent', 'pushAll', roomsWithThisUser)
         }

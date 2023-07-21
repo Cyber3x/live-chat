@@ -23,6 +23,7 @@
         "jsonwebtoken": "^9.0.0",
         "pg": "^8.11.1",
         "reflect-metadata": "^0.1.13",
+        "resend": "^0.17.1",
         "socket.io": "^4.7.1",
         "typeorm": "^0.3.17",
         "zod": "^3.21.4"

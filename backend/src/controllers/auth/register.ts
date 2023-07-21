@@ -2,7 +2,6 @@ import { Request, Response } from 'express'
 import { AppDataSource } from '../../data-source'
 import { User } from '../../entities/User'
 import { type TRegisterUserData } from '../../middleware/validation/auth/validatorRegister'
-import { createJwtToken } from '../../utils/createJwtToken'
 import {
     UserAlreadyExists,
     EmailNotFound,
@@ -11,6 +10,8 @@ import {
 } from '../../constants/errorTypes'
 import { TUserData } from './login'
 import { TJWTPayload } from '../../types/JwtPayload'
+import { createJwtToken } from '../../utils/createJwtToken'
+import { sendVerificationEmail } from '../../utils/sendEmail'
 
 export type TRegisterResponseOK = {
     token: string
@@ -53,21 +54,28 @@ export const register = async (req: Request, res: Response) => {
     })
     await userRepository.save(newUser)
 
-    const JwtPayload: TJWTPayload = {
+    const JwtApiKeyPayload: TJWTPayload = {
         id: newUser.id,
         email: newUser.email,
+        type: 'api-key',
     }
 
     try {
-        const token = createJwtToken(JwtPayload)
+        const apiToken = createJwtToken(
+            JwtApiKeyPayload,
+            process.env.JWT_EXPIRATION as string
+        )
 
-        const { id, firstName, lastName } = newUser
+        sendVerificationEmail(newUser.firstName, newUser.id, newUser.email)
+
+        const { firstName, id, isEmailVerified, lastName } = newUser
 
         const response: TRegisterResponseOK = {
-            token,
+            token: apiToken,
             userData: {
-                id,
                 firstName,
+                id,
+                isEmailVerified,
                 lastName,
             },
         }

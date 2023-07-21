@@ -11,5 +11,7 @@ declare namespace NodeJS {
         JWT_TOKEN_SECRET: string
         JWT_EXPIRATION: string
         JWT_SALT_ROUNDS: string
+        RESEND_API_KEY: string
+        FRONTEND_BASE_URL: string
     }
 }

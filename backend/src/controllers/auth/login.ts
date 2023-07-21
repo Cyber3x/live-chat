@@ -14,6 +14,7 @@ export type TUserData = {
     id: number
     firstName: string
     lastName: string
+    isEmailVerified: boolean
 }
 
 export type TLoginResponseOK = {
@@ -61,12 +62,16 @@ export const login = async (req: Request, res: Response) => {
     const JwtPayload: TJWTPayload = {
         id: user.id,
         email: user.email,
+        type: 'api-key',
     }
 
     try {
-        const token = createJwtToken(JwtPayload)
+        const token = createJwtToken(
+            JwtPayload,
+            process.env.JWT_EXPIRATION as string
+        )
 
-        const { firstName, lastName, id } = user
+        const { firstName, lastName, id, isEmailVerified } = user
 
         const response: TLoginResponseOK = {
             token,
@@ -74,6 +79,7 @@ export const login = async (req: Request, res: Response) => {
                 id,
                 firstName,
                 lastName,
+                isEmailVerified,
             },
         }
 
