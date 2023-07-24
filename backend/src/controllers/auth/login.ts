@@ -7,8 +7,8 @@ import {
 import { createJwtToken } from '../../utils/createJwtToken'
 import { AppDataSource } from '../../data-source'
 import { User } from '../../entities/User'
-import { type TLoginUserData } from '../../middleware/validation/auth/validatorLogin'
 import { TJWTPayload } from '../../types/JwtPayload'
+import { TLoginUserData } from '../../middleware/validation/auth'
 
 export type TUserData = {
     id: number
@@ -62,7 +62,7 @@ export const login = async (req: Request, res: Response) => {
     const JwtPayload: TJWTPayload = {
         id: user.id,
         email: user.email,
-        type: 'api-key',
+        tokenType: 'api-key',
     }
 
     try {

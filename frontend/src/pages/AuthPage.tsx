@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -9,7 +8,7 @@ import {
 } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useNavigate } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 
 import {
   Form,
@@ -223,6 +222,12 @@ function LoginForm() {
         <Button type="submit" className="px-10">
           Login
         </Button>
+        <p className="text-sm text-muted-foreground">
+          Forgot password?{" "}
+          <Link to="/forgot-password" className="font-bold text-teal-600 ">
+            Click here
+          </Link>
+        </p>
       </form>
     </Form>
   )

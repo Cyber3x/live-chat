@@ -34,7 +34,7 @@ export const sendVerificationEmail = async (
     const jwtPayload: TJWTPayload = {
         id: userId,
         email,
-        type: 'verify-email',
+        tokenType: 'verify-email',
     }
 
     try {
@@ -72,8 +72,8 @@ function getMailVerificationHTMLTemplate(firstName: string, token: string) {
     >
         <h1 style="color: white">Verify your email</h1>
         <p style="color: #aaaaaa">
-            In order to make your account more secure we want you to verify your
-            email
+        Hi ${firstName}, in order to make your account more secure we want you to verify your
+        email
         </p>
         <button
             style="
@@ -100,6 +100,65 @@ function getMailVerificationHTMLTemplate(firstName: string, token: string) {
                     font-family: inherit;
                 "
                 >Verify email</a
+            >
+        </button>
+        <p style="text-align: center; color: #aaa">LiveChat Team</p>
+    </div>
+</div>
+
+`
+}
+
+export function getMailResetPasswordHTMLTemplate(
+    firstName: string,
+    token: string
+) {
+    return `<div
+    style="
+        font-family: Verdana, Geneva, Tahoma, sans-serif;
+        padding: 0;
+        margin: 0 auto;
+        width: 60%;
+    "
+>
+    <div
+        style="
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 1rem 3rem;
+            margin: 4rem 0;
+            background-color: rgb(0, 66, 75);
+        "
+    >
+        <h1 style="color: white">Reset your password</h1>
+        <p style="color: #aaaaaa">
+        Hi ${firstName}, you have requested a password change. Please click on the link below and enter you new password.
+        </p>
+        <button
+            style="
+                background-color: rgb(0, 153, 153);
+                color: white;
+                font-weight: bold;
+                font-size: medium;
+                border: none;
+                border-radius: 0.25rem;
+                letter-spacing: 1px;
+                font-family: inherit;
+                width: 100%;
+                margin: 2rem 0;
+                padding: 0;
+            "
+        >
+            <a
+                href="${process.env.FRONTEND_BASE_URL}/change-password/${token}"
+                style="
+                    padding: 1rem 4rem;
+                    display: block;
+                    text-decoration: none;
+                    color: white;
+                    font-family: inherit;
+                "
+                >Reset password</a
             >
         </button>
         <p style="text-align: center; color: #aaa">LiveChat Team</p>

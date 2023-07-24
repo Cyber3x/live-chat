@@ -1,50 +1,59 @@
 import { Request, Response } from 'express'
-import jwt from 'jsonwebtoken'
-import { TJWTPayload } from '../../types/JwtPayload'
 import { User } from '../../entities/User'
+import { parseJwt } from '../../utils/parseJwt'
+import {
+    TokenInvalid,
+    TokenNotProvided,
+    TokenWrongType,
+} from '../../constants/errorTypes'
+
+type TResponse = {
+    message: string
+    type: TokenWrongType | TokenNotProvided | TokenInvalid
+}
 
 export const verify = async (req: Request, res: Response) => {
     const { token } = req.params
 
     if (!token) {
-        return res
-            .status(400)
-            .json({ message: 'Verification token not provided' })
+        const response: TResponse = {
+            message: 'Verification token not provided',
+            type: 'token/not-provided',
+        }
+        return res.status(400).json(response)
     }
 
-    type TJwtPayloadRaw = { [key: string]: string }
-    let jwtPayloadRaw: TJwtPayloadRaw
-    let jwtPayload: TJWTPayload
+    const parsedTokenData = parseJwt(token)
 
-    try {
-        jwtPayloadRaw = jwt.verify(
-            token,
-            process.env.JWT_TOKEN_SECRET as string
-        ) as TJwtPayloadRaw
-        ;['iat', 'exp'].forEach((key) => delete jwtPayloadRaw[key])
-        jwtPayload = jwtPayloadRaw as unknown as TJWTPayload
-
-        if (jwtPayload.type !== 'verify-email') {
-            return res.status(400).json({ message: 'JWT wrong token type' })
+    if (!parsedTokenData.isTokenValid) {
+        const response: TResponse = {
+            message: 'Failed to validate email verification token',
+            type: 'token/invalid',
         }
+        return res.status(400).json(response)
+    }
 
-        console.log(`email for user: ${jwtPayload.email} confirmed`)
-    } catch (error) {
-        return res
-            .status(400)
-            .json({ message: 'Failed to validate email verification token' })
+    const { tokenType, email, id } = parsedTokenData.jwtPayload
+
+    if (tokenType !== 'verify-email') {
+        const response: TResponse = {
+            type: 'token/wrong-type',
+            message: 'Wrong JWT type',
+        }
+        return res.status(400).json(response)
     }
 
     try {
         User.createQueryBuilder()
             .update()
             .set({ isEmailVerified: true })
-            .where('id = :id', { id: jwtPayload.id })
+            .where('id = :id', { id: id })
             .execute()
-        console.log(`isEmailVerified for user ${jwtPayload.email} updated`)
+
+        console.log(`isEmailVerified for user ${email} updated`)
     } catch (error) {
         return res
-            .status(500)
+            .status(400)
             .json({ message: 'Failed to update isEmailVerified in database' })
     }
 
