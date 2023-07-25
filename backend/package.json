@@ -23,6 +23,7 @@
         "jsonwebtoken": "^9.0.0",
         "pg": "^8.11.1",
         "reflect-metadata": "^0.1.13",
+        "resend": "^0.17.1",
         "socket.io": "^4.7.1",
         "typeorm": "^0.3.17",
         "zod": "^3.21.4"
@@ -30,6 +31,7 @@
     "devDependencies": {
         "@types/bcrypt": "^5.0.0",
         "@types/cors": "^2.8.13",
+        "@types/express-serve-static-core": "^4.17.35",
         "@types/jsonwebtoken": "^9.0.2",
         "@types/node": "^20.3.3",
         "@typescript-eslint/eslint-plugin": "^5.61.0",

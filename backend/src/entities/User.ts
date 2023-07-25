@@ -1,6 +1,7 @@
 import {
     BaseEntity,
     BeforeInsert,
+    BeforeUpdate,
     Column,
     CreateDateColumn,
     Entity,
@@ -39,7 +40,7 @@ export class User extends BaseEntity {
     email!: string
 
     @Column('varchar')
-    private password!: string
+    password!: string
 
     @OneToMany(() => ChatRoomUsers, (chatRoomUsers) => chatRoomUsers.user)
     chatRoomUsers!: ChatRoomUsers[]
@@ -56,6 +57,9 @@ export class User extends BaseEntity {
     @Column({ type: 'boolean' })
     isLoggedIn!: boolean
 
+    @Column({ type: 'boolean', default: false })
+    readonly isEmailVerified!: boolean
+
     @Column()
     @CreateDateColumn({ type: 'timestamp' })
     readonly createdAt!: Date
@@ -65,7 +69,8 @@ export class User extends BaseEntity {
     readonly updatedAt!: Date
 
     @BeforeInsert()
-    private hashPassword() {
+    @BeforeUpdate()
+    hashPassword() {
         this.password = hashSync(
             this.password,
             parseInt(process.env.JWT_SALT_ROUNDS as string)

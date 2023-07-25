@@ -1,8 +1,7 @@
 import 'dotenv/config'
 import { NextFunction, Response, Request } from 'express'
-import jwt = require('jsonwebtoken')
 import { createJwtToken } from '../utils/createJwtToken'
-import { TJWTPayload } from '../types/JwtPayload'
+import { parseJwt } from '../utils/parseJwt'
 
 export const checkJwt = (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization
@@ -13,27 +12,30 @@ export const checkJwt = (req: Request, res: Response, next: NextFunction) => {
             .json({ message: 'Authorization header not provided' })
     }
 
-    const token = authHeader.split(' ')[1] as string
+    const token = authHeader.split(' ')[1]
 
-    type TJwtPayloadRaw = { [key: string]: string }
-    let jwtPayloadRaw: TJwtPayloadRaw
-    let jwtPayload: TJWTPayload
+    const parsedData = parseJwt(token)
 
-    try {
-        jwtPayloadRaw = jwt.verify(
-            token,
-            process.env.JWT_TOKEN_SECRET as string
-        ) as TJwtPayloadRaw
-        ;['iat', 'exp'].forEach((key) => delete jwtPayloadRaw[key])
-        jwtPayload = jwtPayloadRaw as unknown as TJWTPayload
-        req.jwtPayload = jwtPayload
-    } catch (error) {
-        return res.status(401).json({ message: 'JWT validation failed', error })
+    if (!parsedData.isTokenValid) {
+        return res
+            .status(400)
+            .json({ message: parsedData.message, error: parsedData.error })
     }
+
+    const { jwtPayload } = parsedData
+
+    if (jwtPayload.tokenType !== 'api-key') {
+        return res.status(400).json({ message: 'JWT wrong token type' })
+    }
+
+    req.jwtPayload = jwtPayload
 
     try {
         // Refresh and send a new token on every request
-        const newToken = createJwtToken(jwtPayload)
+        const newToken = createJwtToken(
+            jwtPayload,
+            process.env.JWT_EXPIRATION as string
+        )
         res.setHeader('token', `Bearer ${newToken}`)
         return next()
     } catch (error) {

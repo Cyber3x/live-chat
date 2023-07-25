@@ -45,7 +45,7 @@ export async function bootstrapServerState() {
         .leftJoinAndSelect('messages.sentBy', 'sender')
         .getMany()
 
-    console.log('all chat rooms raw:', chatRoomsRaw)
+    // console.log('all chat rooms raw:', chatRoomsRaw)
 
     chatRoomsRaw.forEach((chatRoomRaw) => {
         const newChatRoom = new ChatRoomSrvModel(
@@ -66,6 +66,6 @@ export async function bootstrapServerState() {
 
         chatRooms.push(newChatRoom)
     })
-    console.log('all chat rooms loaded: ', chatRooms)
+    // console.log('all chat rooms loaded: ', chatRooms)
     console.log('Bootstrap: done')
 }

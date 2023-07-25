@@ -15,6 +15,7 @@ import {
 } from "@backend/sockets/eventTypes"
 import { TMessage } from "@backend/entities/Message"
 import { TUser } from "@backend/entities/User"
+import { useToast } from "../ui/use-toast"
 
 export type TChatUser = TUser & { isCurrentlyOpen?: boolean }
 
@@ -23,7 +24,8 @@ type TChatContext = {
   openedChatRoomId: number
   chatRooms: ChatRoomSrvModel[]
   messages: TMessage[]
-  users: Map<number, TChatUser>
+  allUsers: Map<number, TChatUser>
+  currentChatRoomUsers: TChatUser[]
   sendMessage: (message: string) => void
   createChatRoom: (chatRoomName: string, users: number[]) => void
   getOtherUsers: () => TChatUser[]
@@ -33,12 +35,17 @@ export const ChatContext = createContext<TChatContext>(null!)
 
 export const ChatProvider = ({ children }: PropsWithChildren) => {
   const { userData, token } = useContext(AuthContext)
+  const { toast } = useToast()
 
   // current room messages
   const [messages, setMessages] = useState<TMessage[]>([])
 
-  // current room users
-  const [users, setUsers] = useState<Map<number, TChatUser>>(new Map())
+  // all users
+  const [allUsers, setAllUsers] = useState<Map<number, TChatUser>>(new Map())
+
+  const [currentChatRoomUsers, setCurrentChatRoomUsers] = useState<TChatUser[]>(
+    []
+  )
 
   // all users chat rooms
   const [chatRooms, setChatRooms] = useState<ChatRoomSrvModel[]>([])
@@ -58,7 +65,15 @@ export const ChatProvider = ({ children }: PropsWithChildren) => {
   // Send inital credentials
   useEffect(() => {
     socket.emit("newConnection", token, userData)
-  }, [token, userData])
+
+    if (!userData.isEmailVerified) {
+      toast({
+        title: "Please verify your email",
+        description:
+          "Go to your email service and confirm your email. This will allow you more access to the applicaiton.",
+      })
+    }
+  }, [token, userData, toast])
 
   // Register event handlers
   useEffect(() => {
@@ -68,7 +83,7 @@ export const ChatProvider = ({ children }: PropsWithChildren) => {
     ) {
       // console.log("Current users before", type, users)
       // console.log(type, newUsers)
-      const updatedUsers = new Map(users)
+      const updatedUsers = new Map(allUsers)
       switch (type) {
         case "pushAll":
         case "add":
@@ -88,7 +103,7 @@ export const ChatProvider = ({ children }: PropsWithChildren) => {
         default:
           console.error("Unhandled usersListUpdate type:", type)
       }
-      setUsers(updatedUsers)
+      setAllUsers(updatedUsers)
     }
 
     function onServerMessage(newMessage: TMessage, targetChatRoomId: number) {
@@ -167,7 +182,7 @@ export const ChatProvider = ({ children }: PropsWithChildren) => {
       socket.off("serverMessage", onServerMessage)
       socket.off("chatRoomsListEvent", onChatRoomsListEvent)
     }
-  }, [users])
+  }, [allUsers])
 
   useEffect(() => {
     const targetChatRooms = chatRooms.filter(
@@ -181,12 +196,26 @@ export const ChatProvider = ({ children }: PropsWithChildren) => {
       )
     } else if (targetChatRooms.length === 1) {
       setMessages(targetChatRooms[0].messages)
-      console.log("target room foumd. setting messages")
+
+      const chatRoomUsers = []
+
+      for (const id of targetChatRooms[0].userIds) {
+        const user = allUsers.get(id)
+        if (!user) {
+          console.log(`id: ${id} not found in allUsers`)
+        } else {
+          chatRoomUsers.push(user)
+        }
+      }
+
+      setCurrentChatRoomUsers(chatRoomUsers)
+
+      console.log("target room foumd. setting messages and users")
     } else {
       setMessages([])
       console.error("found multiple rooms with same id", targetChatRooms)
     }
-  }, [openedChatRoomId, chatRooms])
+  }, [openedChatRoomId, chatRooms, allUsers])
 
   function sendMessage(message: string) {
     if (message.length === 0) return
@@ -221,14 +250,17 @@ export const ChatProvider = ({ children }: PropsWithChildren) => {
    * Returns all users that are not the current user
    */
   function getOtherUsers() {
-    return Array.from(users.values()).filter((user) => user.id !== userData.id)
+    return Array.from(allUsers.values()).filter(
+      (user) => user.id !== userData.id
+    )
   }
 
   const value: TChatContext = {
     openChatRoom,
     openedChatRoomId,
     messages,
-    users,
+    allUsers,
+    currentChatRoomUsers,
     chatRooms,
     sendMessage,
     createChatRoom,

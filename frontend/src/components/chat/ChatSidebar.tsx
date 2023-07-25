@@ -20,7 +20,7 @@ function sortUsers(users: TChatUser[]): TChatUser[] {
 }
 
 export default function ChatSidebar() {
-  const { getOtherUsers, chatRooms } = useContext(ChatContext)
+  const { chatRooms, currentChatRoomUsers } = useContext(ChatContext)
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false)
 
   return (
@@ -34,11 +34,16 @@ export default function ChatSidebar() {
         </DialogTrigger>
         <h1 className="text-center font-medium text-teal-700">Chat rooms</h1>
         {chatRooms.map((data, i) => (
-          <ChatRoomButton name={data.name} key={i} id={data.id} />
+          <ChatRoomButton
+            name={data.name}
+            key={i}
+            id={data.id}
+            numOfUnreadMessages={i !== 0 ? 2 : undefined}
+          />
         ))}
 
         <h1 className="text-center font-medium text-teal-700">Room users</h1>
-        {sortUsers(getOtherUsers()).map((user, i) => (
+        {sortUsers(currentChatRoomUsers).map((user, i) => (
           <UserStatus user={user} key={i} />
         ))}
       </div>

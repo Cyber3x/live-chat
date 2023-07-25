@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils"
 import { PropsWithChildren } from "react"
 
 type Props = {
-  className: string
+  className?: string
 }
 
 export function TypographyH1({

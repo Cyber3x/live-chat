@@ -6,6 +6,10 @@ import { AuthPage } from "./pages/AuthPage"
 import ChatHome from "./pages/ChatHome"
 import { LandingPage } from "./pages/LandingPage"
 import { ChatProvider } from "./components/chat/ChatProvider"
+import EmailVerifiedPage from "./pages/EmailVerifiedPage"
+import { Toaster } from "./components/ui/toaster"
+import EmailInputPage from "./pages/forgotPassword/EmailInputPage"
+import ChangePasswordPage from "./pages/forgotPassword/ChangePasswordPage"
 
 const router = createBrowserRouter([
   {
@@ -39,11 +43,15 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
+  { path: "email-verified", element: <EmailVerifiedPage /> },
+  { path: "forgot-password", element: <EmailInputPage /> },
+  { path: "change-password/:token", element: <ChangePasswordPage /> },
 ])
 
 export default function App() {
   return (
     <AuthProvider>
+      <Toaster />
       <RouterProvider router={router} />
     </AuthProvider>
   )

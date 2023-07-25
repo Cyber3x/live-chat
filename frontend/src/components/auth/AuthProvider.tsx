@@ -4,6 +4,7 @@ import { PropsWithChildren, createContext, useState } from "react"
 import { redirect } from "react-router-dom"
 
 import {
+  TUserData,
   type TLoginResponseError,
   type TLoginResponseOK,
 } from "@backend/controllers/auth/login"
@@ -37,12 +38,6 @@ type IAuthContext = {
   register: (data: TRegisterData) => Promise<TRegisterStatusResponse>
   logout: () => void
   getUserFullName: () => string
-}
-
-type TUserData = {
-  id: number
-  firstName: string
-  lastName: string
 }
 
 export const AuthContext = createContext<IAuthContext>(null!)
