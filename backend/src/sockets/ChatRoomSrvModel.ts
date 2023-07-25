@@ -17,7 +17,7 @@ export default class ChatRoomSrvModel {
     readonly userIds: number[]
     readonly messages: TMessage[]
     // NULL just in case that this is a global chat room
-    private createdBy: number | null
+    private _createdBy: number | null
 
     constructor(
         id: number,
@@ -27,7 +27,7 @@ export default class ChatRoomSrvModel {
         messages: TMessage[]
     ) {
         this.name = name
-        this.createdBy = createdBy
+        this._createdBy = createdBy
         this.userIds = userIds
         this.messages = messages
         this.id = id
@@ -35,6 +35,10 @@ export default class ChatRoomSrvModel {
 
     get numberOfUsers() {
         return this.userIds.length
+    }
+
+    get createdBy() {
+        return this._createdBy
     }
 
     get users() {

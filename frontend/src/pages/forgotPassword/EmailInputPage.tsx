@@ -17,14 +17,17 @@ import {
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/use-toast"
 import { apiPost } from "@/utils/apiFetch"
-import {
-  FormSchemaMailInput,
-  type TMailInputData,
-} from "@backend/middleware/validation/auth"
+
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { useNavigate } from "react-router-dom"
 import { type TForgotPasswordResponseError } from "@backend/controllers/auth/sendForgotPasswordEmail"
+import { z } from "zod"
+
+const FormSchemaMailInput = z.object({
+  email: z.string().email(),
+})
+type TMailInputData = z.infer<typeof FormSchemaMailInput>
 
 export default function EmailInputPage() {
   const navigate = useNavigate()

@@ -17,15 +17,23 @@ import {
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/use-toast"
 import { apiPost } from "@/utils/apiFetch"
-import {
-  FormSchemaPasswordChange,
-  TChangePasswordData,
-} from "@backend/middleware/validation/auth"
+
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ToastAction } from "@radix-ui/react-toast"
 import { useForm } from "react-hook-form"
 import { useNavigate, useParams } from "react-router-dom"
 import { type TChangePasswrodResponse } from "@backend/controllers/auth/changePassword"
+import { z } from "zod"
+
+const FormSchemaPasswordChange = z.object({
+  password: z
+    .string()
+    .min(8, { message: "Password needs to be at least 8 characthers" }),
+  confirm: z.string().min(8),
+  token: z.string(),
+})
+
+type TChangePasswordData = z.infer<typeof FormSchemaPasswordChange>
 
 export default function ChangePasswordPage() {
   const { token } = useParams()

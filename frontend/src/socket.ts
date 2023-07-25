@@ -1,6 +1,6 @@
 import {
-  ClientToServerEvents,
-  ServerToClientEvents,
+  type ClientToServerEvents,
+  type ServerToClientEvents,
 } from "@backend/sockets/eventTypes"
 import { io, Socket } from "socket.io-client"
 
