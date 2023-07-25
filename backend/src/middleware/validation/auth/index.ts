@@ -1,4 +1,23 @@
-import { validatorLogin } from './validatorLogin'
-import { validatorRegister } from './validatorRegister'
+import { validatorCreator } from './validatorCreator'
+import {
+    FormSchemaLoginData,
+    FormSchemaMailInput,
+    FormSchemaRegisterData,
+    FormSchemaPasswordChange,
+    type TLoginUserData,
+    type TMailInputData,
+    type TRegisterUserData,
+    type TChangePasswordData,
+} from './validators'
 
-export { validatorLogin, validatorRegister }
+export {
+    validatorCreator,
+    FormSchemaLoginData,
+    FormSchemaMailInput,
+    FormSchemaRegisterData,
+    FormSchemaPasswordChange,
+    TLoginUserData,
+    TMailInputData,
+    TRegisterUserData,
+    TChangePasswordData,
+}

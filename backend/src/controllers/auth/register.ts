@@ -1,7 +1,6 @@
 import { Request, Response } from 'express'
 import { AppDataSource } from '../../data-source'
 import { User } from '../../entities/User'
-import { type TRegisterUserData } from '../../middleware/validation/auth/validatorRegister'
 import {
     UserAlreadyExists,
     EmailNotFound,
@@ -12,6 +11,7 @@ import { TUserData } from './login'
 import { TJWTPayload } from '../../types/JwtPayload'
 import { createJwtToken } from '../../utils/createJwtToken'
 import { sendVerificationEmail } from '../../utils/sendEmail'
+import { TRegisterUserData } from '../../middleware/validation/auth'
 
 export type TRegisterResponseOK = {
     token: string
@@ -57,7 +57,7 @@ export const register = async (req: Request, res: Response) => {
     const JwtApiKeyPayload: TJWTPayload = {
         id: newUser.id,
         email: newUser.email,
-        type: 'api-key',
+        tokenType: 'api-key',
     }
 
     try {

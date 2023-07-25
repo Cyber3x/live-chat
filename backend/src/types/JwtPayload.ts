@@ -1,7 +1,7 @@
-export type TJwtTokenType = 'verify-email' | 'api-key'
+export type TJwtTokenType = 'verify-email' | 'api-key' | 'password-reset'
 
 export type TJWTPayload = {
     id: number
     email: string
-    type: TJwtTokenType
+    tokenType: TJwtTokenType
 }

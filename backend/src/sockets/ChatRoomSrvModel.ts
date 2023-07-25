@@ -17,7 +17,7 @@ export default class ChatRoomSrvModel {
     readonly userIds: number[]
     readonly messages: TMessage[]
     // NULL just in case that this is a global chat room
-    private createdBy: number | null
+    readonly createdBy: number | null
 
     constructor(
         id: number,
