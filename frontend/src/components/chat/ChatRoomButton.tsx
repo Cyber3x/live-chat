@@ -1,20 +1,24 @@
 import { cn } from "@/lib/utils"
+import ChatRoomSrvModel from "@backend/sockets/ChatRoomSrvModel"
+import { useContext, useEffect, useState } from "react"
 import { Button } from "../ui/button"
 import { ChatContext } from "./ChatProvider"
-import { useContext } from "react"
 
 type Props = {
-  name: string
-  id: number
-  numOfUnreadMessages?: number
+  chatRoom: ChatRoomSrvModel
 }
 
-export default function ChatRoomButton({
-  name,
-  id,
-  numOfUnreadMessages,
-}: Props) {
-  const { openedChatRoomId, openChatRoom } = useContext(ChatContext)
+export default function ChatRoomButton({ chatRoom }: Props) {
+  const { openedChatRoomId, openChatRoom, unreadMessages } =
+    useContext(ChatContext)
+
+  const { id, name } = chatRoom
+
+  const [numberOfUnreadMessages, setNumberOfUnreadMessages] = useState(0)
+
+  useEffect(() => {
+    setNumberOfUnreadMessages(unreadMessages.get(id) ?? 0)
+  }, [unreadMessages, id])
 
   return (
     <Button
@@ -26,11 +30,13 @@ export default function ChatRoomButton({
       onClick={() => openChatRoom(id)}
     >
       <p className={cn(openedChatRoomId === id && "text-white")}>{name}</p>
-      {numOfUnreadMessages && (
-        <p className="text-xs rounded-full bg-teal-700 w-6 h-6 text-white shadow-sm flex justify-center items-center">
-          {numOfUnreadMessages > 99 ? "99+" : numOfUnreadMessages}
-        </p>
-      )}
+      {numberOfUnreadMessages ? (
+        numberOfUnreadMessages > 0 ? (
+          <p className="text-xs rounded-full bg-teal-700 w-6 h-6 text-white shadow-sm flex justify-center items-center">
+            {numberOfUnreadMessages > 99 ? "99+" : numberOfUnreadMessages}
+          </p>
+        ) : null
+      ) : null}
     </Button>
   )
 }

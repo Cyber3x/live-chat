@@ -2,14 +2,6 @@ import { TMessage } from '../entities/Message'
 import { TUser } from '../entities/User'
 import { allUsers } from './serverState'
 
-export type TChatRoom = {
-    name: string
-    id: number
-    userIds: number[]
-    messages: TMessage[]
-    createdBy: TUser
-}
-
 export default class ChatRoomSrvModel {
     readonly id: number
     readonly name: string

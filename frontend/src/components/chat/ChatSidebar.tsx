@@ -14,7 +14,7 @@ function sortUsers(users: TChatUser[]): TChatUser[] {
     } else if (!a.isOnline && z.isOnline) {
       return 1
     } else {
-      return 0
+      return a.firstName.localeCompare(z.firstName)
     }
   })
 }
@@ -33,13 +33,8 @@ export default function ChatSidebar() {
           </Button>
         </DialogTrigger>
         <h1 className="text-center font-medium text-teal-700">Chat rooms</h1>
-        {chatRooms.map((data, i) => (
-          <ChatRoomButton
-            name={data.name}
-            key={i}
-            id={data.id}
-            numOfUnreadMessages={i !== 0 ? 2 : undefined}
-          />
+        {chatRooms.map((chatRoom, i) => (
+          <ChatRoomButton chatRoom={chatRoom} key={i} />
         ))}
 
         <h1 className="text-center font-medium text-teal-700">Room users</h1>
