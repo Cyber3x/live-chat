@@ -16,6 +16,7 @@ import {
 import { TMessage } from "@backend/entities/Message"
 import { TUser } from "@backend/entities/User"
 import { useToast } from "../ui/use-toast"
+import { useMap } from "usehooks-ts"
 
 export type TChatUser = TUser & { isCurrentlyOpen?: boolean }
 
@@ -26,6 +27,7 @@ type TChatContext = {
   messages: TMessage[]
   allUsers: Map<number, TChatUser>
   currentChatRoomUsers: TChatUser[]
+  unreadMessages: Omit<Map<number, number>, "clear" | "delete" | "set">
   sendMessage: (message: string) => void
   createChatRoom: (chatRoomName: string, users: number[]) => void
   getOtherUsers: () => TChatUser[]
@@ -49,6 +51,9 @@ export const ChatProvider = ({ children }: PropsWithChildren) => {
 
   // all users chat rooms
   const [chatRooms, setChatRooms] = useState<ChatRoomSrvModel[]>([])
+
+  // map of unread messages per each room
+  const [unreadMessages, unreadMessagesActions] = useMap<number, number>()
 
   // currently open chat room
   const [openedChatRoomId, setOpenedChatRoomId] = useState<number>(0)
@@ -126,6 +131,13 @@ export const ChatProvider = ({ children }: PropsWithChildren) => {
           return newChatRooms
         }
 
+        if (targetChatRoomId !== openedChatRoomId) {
+          unreadMessagesActions.set(
+            targetChatRoomId,
+            (unreadMessages.get(targetChatRoomId) ?? 0) + 1
+          )
+        }
+
         newChatRooms[targetRoomIndex].messages.unshift(newMessage)
 
         return newChatRooms
@@ -142,10 +154,17 @@ export const ChatProvider = ({ children }: PropsWithChildren) => {
 
       switch (type) {
         case "pushAll": {
+          newChatRooms.forEach((chatRoom) =>
+            unreadMessagesActions.set(chatRoom.id, 0)
+          )
           setChatRooms(newChatRooms)
+
           break
         }
         case "add": {
+          newChatRooms.forEach((chatRoom) =>
+            unreadMessagesActions.set(chatRoom.id, 0)
+          )
           setChatRooms((currentChatRooms) => [
             ...currentChatRooms,
             ...newChatRooms,
@@ -163,6 +182,9 @@ export const ChatProvider = ({ children }: PropsWithChildren) => {
           break
         }
         case "remove": {
+          newChatRooms.forEach((chatRoom) =>
+            unreadMessagesActions.remove(chatRoom.id)
+          )
           setChatRooms((currentChatRooms) =>
             currentChatRooms.filter(({ id }) => !newChatRoomIds.includes(id))
           )
@@ -182,8 +204,9 @@ export const ChatProvider = ({ children }: PropsWithChildren) => {
       socket.off("serverMessage", onServerMessage)
       socket.off("chatRoomsListEvent", onChatRoomsListEvent)
     }
-  }, [allUsers])
+  }, [allUsers, unreadMessagesActions, openedChatRoomId, unreadMessages])
 
+  // Actions needed when the selected chat room changes
   useEffect(() => {
     const targetChatRooms = chatRooms.filter(
       (chatRoom) => chatRoom.id === openedChatRoomId
@@ -242,6 +265,7 @@ export const ChatProvider = ({ children }: PropsWithChildren) => {
 
   function openChatRoom(id: number) {
     const chatRoom = chatRooms.filter((chatRoom) => chatRoom.id === id)[0]
+    unreadMessagesActions.set(id, 0)
     setMessages(chatRoom.messages)
     setOpenedChatRoomId(id)
   }
@@ -260,6 +284,7 @@ export const ChatProvider = ({ children }: PropsWithChildren) => {
     openedChatRoomId,
     messages,
     allUsers,
+    unreadMessages,
     currentChatRoomUsers,
     chatRooms,
     sendMessage,
