@@ -1,0 +1,33 @@
+version: "2.19.1"
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: live_chat
+      NODE_ENV: production
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5444:5432"
+  backend:
+    build:
+      context: ./backend
+    depends_on:
+      - db
+    environment:
+      PG_HOST: db
+      PG_PORT: 5432
+      NODE_ENV: production
+    ports:
+      - "4000:4000" # host:container
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:

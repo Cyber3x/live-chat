@@ -1,6 +1,4 @@
-# LiveChat Docs
+# LiveChat - Fullstack chat app
 
-1. clone
-2. run `pnpm install`
-3. run `pnpm run dev`
-4. you're up and running
+![LiveChatFrontend](images/app.png)
+![LiveChatDB_ER_Model](images/db_er_model.png)
