@@ -2,3 +2,4 @@
 /.example*
 /build
 .env
+logs
