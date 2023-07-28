@@ -1,9 +1,10 @@
 {
-  "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
-  },
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "editor.formatOnSave": true,
-  "typescript.preferences.importModuleSpecifier": "shortest",
-  "typescript.validate.enable": true
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": true
+    },
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "typescript.preferences.importModuleSpecifier": "shortest",
+    "typescript.validate.enable": true,
+    "editor.snippetSuggestions": "bottom"
 }

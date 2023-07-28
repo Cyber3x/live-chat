@@ -26,6 +26,7 @@
         "resend": "^0.17.1",
         "socket.io": "^4.7.1",
         "typeorm": "^0.3.17",
+        "winston": "^3.10.0",
         "zod": "^3.21.4"
     },
     "devDependencies": {

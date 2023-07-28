@@ -92,7 +92,6 @@ export default function CreateChatRoomDialog({ closeDialog }: Props) {
                       key={user.id}
                       onSelect={() => {
                         toggleUserId(user.id)
-                        setOpen(false)
                       }}
                     >
                       <Check

@@ -1,7 +1,6 @@
 import {
     BaseEntity,
     BeforeInsert,
-    BeforeUpdate,
     Column,
     CreateDateColumn,
     Entity,
@@ -13,18 +12,8 @@ import { hashSync, compareSync } from 'bcrypt'
 import { ChatRoomUsers } from './ChatRoomUsers'
 import { ChatRoom } from './ChatRoom'
 import { Message } from './Message'
+import { TUserMinimal } from '../sockets/eventTypes'
 
-/**
- * This is the object that's send to the client and that's stored in servers memory for chat managment
- */
-export type TUser = {
-    id: number
-    firstName: string
-    lastName: string
-    isOnline: boolean
-    socketId?: string
-    isLoggedIn: boolean
-}
 @Entity()
 export class User extends BaseEntity {
     @PrimaryGeneratedColumn()
@@ -69,7 +58,6 @@ export class User extends BaseEntity {
     readonly updatedAt!: Date
 
     @BeforeInsert()
-    @BeforeUpdate()
     hashPassword() {
         this.password = hashSync(
             this.password,
@@ -81,14 +69,12 @@ export class User extends BaseEntity {
         return compareSync(unencryptedPassword, this.password)
     }
 
-    get publicVersion(): TUser {
+    get publicVersion(): TUserMinimal {
         return {
             id: this.id,
             firstName: this.firstName,
             lastName: this.lastName,
-            isLoggedIn: this.isLoggedIn,
             isOnline: this.isOnline,
-            socketId: '',
         }
     }
 }

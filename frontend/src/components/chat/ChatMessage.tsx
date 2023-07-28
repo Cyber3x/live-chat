@@ -1,17 +1,20 @@
 import { cn } from "@/lib/utils"
 import { AuthContext } from "../auth/AuthProvider"
 import { useContext } from "react"
-import { TMessage } from "@backend/entities/Message"
+import { TMessage } from "@backend/sockets/eventTypes"
+import { ChatContext } from "./ChatProvider"
 
 type Props = {
   message: TMessage
 }
 
 export default function ChatMessage({ message }: Props) {
-  const { message: messageText, senderData } = message
+  const { message: messageText, senderId } = message
   const { userData } = useContext(AuthContext)
+  const { getUserById } = useContext(ChatContext)
 
-  const isSentByMe = senderData.id === userData.id
+  const isSentByMe = senderId === userData.id
+  const sender = getUserById(senderId)
 
   return (
     <div
@@ -24,7 +27,7 @@ export default function ChatMessage({ message }: Props) {
     >
       {!isSentByMe && (
         <p className="font-bold space-y-1 text-teal-600">
-          {senderData.firstName} {senderData.lastName}
+          {sender.firstName} {sender.lastName}
         </p>
       )}
       <p>{messageText}</p>

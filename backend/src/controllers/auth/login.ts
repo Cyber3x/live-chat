@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import {
     EmailNotFound,
-    InvalidEmailOrPassword,
+    IncorrectPassword,
     TokenCreationError,
 } from '../../constants/errorTypes'
 import { createJwtToken } from '../../utils/createJwtToken'
@@ -24,7 +24,7 @@ export type TLoginResponseOK = {
 
 export type TLoginErrorType =
     | EmailNotFound
-    | InvalidEmailOrPassword
+    | IncorrectPassword
     | TokenCreationError
 
 export type TLoginResponseError = {
@@ -50,10 +50,12 @@ export const login = async (req: Request, res: Response) => {
         return res.status(400).json(response)
     }
 
-    if (!user.checkIfPasswordMatch(password)) {
+    const passwordsMatch = user.checkIfPasswordMatch(password)
+
+    if (!passwordsMatch) {
         const response: TLoginResponseError = {
-            message: 'Inccorect email or password',
-            type: 'auth/invalid-email-or-password',
+            message: 'Inccorect password',
+            type: 'auth/incorrect-password',
         }
 
         return res.status(400).json(response)

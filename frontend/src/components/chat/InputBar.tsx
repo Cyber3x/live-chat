@@ -1,14 +1,12 @@
 import { SendIcon } from "lucide-react"
+import { KeyboardEvent, Ref, forwardRef, useContext, useState } from "react"
 import { Button } from "../ui/button"
 import { Input } from "../ui/input"
-import { KeyboardEvent, useContext, useRef, useState } from "react"
 import { ChatContext } from "./ChatProvider"
 
-export default function InputBar() {
+const InputBar = forwardRef((_, ref: Ref<HTMLInputElement>) => {
   const [message, setMessage] = useState<string>("")
   const { sendMessage } = useContext(ChatContext)
-
-  const inputRef = useRef<HTMLInputElement>(null)
 
   function handleSendMessage() {
     sendMessage(message)
@@ -24,7 +22,7 @@ export default function InputBar() {
   return (
     <div className="flex space-x-4 mr-4">
       <Input
-        ref={inputRef}
+        ref={ref}
         className="flex-1"
         placeholder="type text here..."
         onKeyDown={(e) => handleKeyDown(e)}
@@ -37,4 +35,6 @@ export default function InputBar() {
       </Button>
     </div>
   )
-}
+})
+
+export default InputBar

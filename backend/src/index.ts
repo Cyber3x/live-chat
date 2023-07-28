@@ -7,18 +7,18 @@ import { Server } from 'http'
 import { AppDataSource } from './data-source'
 import defaultRouter from './routes/routes'
 import { setupSocketIOServer } from './sockets/socket'
-import { bootstrapServerState } from './sockets/serverState'
+import { logger } from './utils/logger'
 let retryTries = 5
 ;(async () => {
     try {
         while (retryTries > 0) {
             try {
                 await AppDataSource.initialize()
-                console.log('Backned connected to DB')
+                logger.info('Backned connected to DB')
                 break
             } catch (error) {
                 retryTries--
-                console.log(
+                console.warn(
                     'Connection to DB Failed, waiting 5 secs, retries left:',
                     retryTries,
                     error
@@ -26,11 +26,9 @@ let retryTries = 5
                 await new Promise((resolve) => setTimeout(resolve, 5000))
             }
         }
-        await bootstrapServerState()
-
-        console.log('Data source has been initalized!')
+        logger.info('Data source has been initalized!')
     } catch (err) {
-        console.error('error during data source initalization:', err)
+        logger.error('error during data source initalization:', err)
     }
 })()
 
@@ -51,5 +49,5 @@ app.use('/', defaultRouter)
 
 const PORT = process.env.PORT
 httpServer.listen(PORT, () => {
-    console.log(`Example app listening on port ${PORT}`)
+    logger.info(`LiveChat API listening on port ${PORT}`)
 })

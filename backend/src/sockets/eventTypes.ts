@@ -1,18 +1,44 @@
 import { TUserData } from '../controllers/auth/login'
-import { TMessage } from '../entities/Message'
-import { TUser } from '../entities/User'
-import ChatRoomSrvModel from './ChatRoomSrvModel'
+import { TCouldError } from '../types'
 
-export type TChatRoomsListEventType = 'pushAll' | 'add' | 'update' | 'remove'
-export type TUsersListEventType = 'pushAll' | 'add' | 'update' | 'remove'
+export type TChatRoomsListEventType = 'add' | 'remove'
+export type TUsersListEventType = 'update' | 'remove'
+
+export type TChatRoomMinimal = {
+    name: string
+    id: number
+}
+
+export type TChatRoom = {
+    id: number
+    name: string
+    creatorId: number | null
+    userIds: number[]
+    messages: TMessage[]
+}
+
+export type TUserMinimal = {
+    id: number
+    firstName: string
+    lastName: string
+    isOnline: boolean
+}
+
+export type TMessage = {
+    id: number
+    message: string
+    senderId: number
+    sentAt: Date
+}
 
 export type ServerToClientEvents = {
-    usersListEvent: (type: TUsersListEventType, users: TUser[]) => void
-    serverMessage: (message: TMessage, chatRoomId: number) => void
+    usersListEvent: (type: TUsersListEventType, users: TUserMinimal[]) => void
     chatRoomsListEvent: (
         type: TChatRoomsListEventType,
-        chatRooms: ChatRoomSrvModel[]
+        chatRoom: TChatRoom
     ) => void
+
+    serverMessage: (message: TMessage, targetChatRoomId: number) => void
 }
 
 export type ClientToServerEvents = {
@@ -23,12 +49,41 @@ export type ClientToServerEvents = {
         message: string,
         chatRoomId: number
     ) => void
+
     createChatRoom: (
         token: string,
         userData: TUserData,
         chatRoomName: string,
         userIds: number[],
-        callback: (chatRoomId: number) => void
+        callback: (newChatRoom: TChatRoom) => void
+    ) => void
+
+    getUserChatRooms: (
+        token: string,
+        userData: TUserData,
+        callback: (chatRooms: TChatRoomMinimal[]) => void
+    ) => void
+
+    getUsers: (
+        token: string,
+        userData: TUserData,
+        callback: (data: TCouldError<TUserMinimal[]>) => void
+    ) => void
+
+    // chat room details
+    getChatRoom: (
+        token: string,
+        userData: TUserData,
+        targetChatRoomId: number,
+        callback: (data: TCouldError<TChatRoom>) => void
+    ) => void
+
+    // TODO: implement @chatRoomEvents -> serverside event hanlder
+    getChatRoomMessages: (
+        token: string,
+        userData: TUserData,
+        targetChatRoomId: number,
+        callback: (data: TCouldError<TMessage[]>) => void
     ) => void
 }
 
