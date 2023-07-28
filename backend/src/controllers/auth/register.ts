@@ -4,7 +4,6 @@ import { User } from '../../entities/User'
 import {
     UserAlreadyExists,
     EmailNotFound,
-    InvalidEmailOrPassword,
     TokenCreationError,
 } from '../../constants/errorTypes'
 import { TUserData } from './login'
@@ -20,7 +19,6 @@ export type TRegisterResponseOK = {
 
 export type TRegisterErrorType =
     | EmailNotFound
-    | InvalidEmailOrPassword
     | TokenCreationError
     | UserAlreadyExists
 
