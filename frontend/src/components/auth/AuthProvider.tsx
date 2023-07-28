@@ -34,6 +34,7 @@ type IAuthContext = {
   isAuthenticated: boolean
   token: string
   userData: TUserData
+
   login: (data: TLoginData) => Promise<TLoginStatusResponse>
   register: (data: TRegisterData) => Promise<TRegisterStatusResponse>
   logout: () => void
@@ -70,7 +71,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       case "auth/email-not-found":
         target = "email"
         break
-      case "auth/invalid-email-or-password":
+      case "auth/incorrect-password":
         target = "password"
         break
       case "token/error-while-creating":
@@ -103,9 +104,6 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     switch (type) {
       case "auth/email-not-found":
         target = "email"
-        break
-      case "auth/invalid-email-or-password":
-        target = "password"
         break
       case "auth/user-already-exists":
         target = "email"

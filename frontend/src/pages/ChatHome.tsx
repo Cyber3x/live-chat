@@ -3,12 +3,33 @@ import ChatMessages from "@/components/chat/ChatMessages"
 import InputBar from "@/components/chat/InputBar"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { useContext } from "react"
+import { useContext, useEffect, useRef } from "react"
 
 import ChatSidebar from "@/components/chat/ChatSidebar"
+import { ChatContext } from "@/components/chat/ChatProvider"
 
 export default function ChatHome() {
   const { logout, getUserFullName } = useContext(AuthContext)
+  const { openChatRoom, currentChatRoom } = useContext(ChatContext)
+  const inputBarRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        openChatRoom(-1)
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown)
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [openChatRoom])
+
+  function handleOnChatMessagesClick() {
+    inputBarRef.current?.focus()
+  }
 
   return (
     <div className="h-full flex flex-col p-4 pr-0">
@@ -28,8 +49,18 @@ export default function ChatHome() {
         <ChatSidebar />
         <Separator orientation="vertical" className="mx-4 mb-4" />
         <div className="flex-1 flex-col flex space-y-4">
-          <ChatMessages />
-          <InputBar />
+          {currentChatRoom === null ? (
+            <div className="flex justify-center items-center flex-1">
+              <h1 className="text-gray-300 font-bold text-2xl">
+                No chatrooms open. Open one and start chatting
+              </h1>
+            </div>
+          ) : (
+            <>
+              <ChatMessages onClick={handleOnChatMessagesClick} />
+              <InputBar ref={inputBarRef} />
+            </>
+          )}
         </div>
       </div>
     </div>

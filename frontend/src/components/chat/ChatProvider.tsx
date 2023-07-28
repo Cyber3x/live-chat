@@ -7,30 +7,27 @@ import {
 } from "react"
 import { AuthContext } from "../auth/AuthProvider"
 
+import { useMap, useEffectOnce } from "usehooks-ts"
 import { socket } from "@/socket"
-import ChatRoomSrvModel from "@backend/sockets/ChatRoomSrvModel"
 import {
+  TChatRoom,
+  TChatRoomMinimal,
   TChatRoomsListEventType,
+  TMessage,
+  TUserMinimal,
   TUsersListEventType,
 } from "@backend/sockets/eventTypes"
-import { TMessage } from "@backend/entities/Message"
-import { TUser } from "@backend/entities/User"
 import { useToast } from "../ui/use-toast"
-import { useMap } from "usehooks-ts"
-
-export type TChatUser = TUser & { isCurrentlyOpen?: boolean }
 
 type TChatContext = {
+  chatRooms: TChatRoomMinimal[]
+  currentChatRoom: TChatRoom | null
   openChatRoom: (id: number) => void
-  openedChatRoomId: number
-  chatRooms: ChatRoomSrvModel[]
-  messages: TMessage[]
-  allUsers: Map<number, TChatUser>
-  currentChatRoomUsers: TChatUser[]
-  unreadMessages: Omit<Map<number, number>, "clear" | "delete" | "set">
+  users: TUserMinimal[]
+  getUserById: (id: number) => TUserMinimal
+  createChatRoom: (chatRoomName: string, userIds: number[]) => void
+  getOtherUsers: () => TUserMinimal[]
   sendMessage: (message: string) => void
-  createChatRoom: (chatRoomName: string, users: number[]) => void
-  getOtherUsers: () => TChatUser[]
 }
 
 export const ChatContext = createContext<TChatContext>(null!)
@@ -39,37 +36,39 @@ export const ChatProvider = ({ children }: PropsWithChildren) => {
   const { userData, token } = useContext(AuthContext)
   const { toast } = useToast()
 
-  // current room messages
-  const [messages, setMessages] = useState<TMessage[]>([])
-
-  // all users
-  const [allUsers, setAllUsers] = useState<Map<number, TChatUser>>(new Map())
-
-  const [currentChatRoomUsers, setCurrentChatRoomUsers] = useState<TChatUser[]>(
-    []
-  )
+  const [currentChatRoom, setCurrentChatRoom] = useState<TChatRoom | null>(null)
 
   // all users chat rooms
-  const [chatRooms, setChatRooms] = useState<ChatRoomSrvModel[]>([])
+  const [chatRooms, setChatRooms] = useState<TChatRoomMinimal[]>([])
 
-  // map of unread messages per each room
-  const [unreadMessages, unreadMessagesActions] = useMap<number, number>()
-
-  // currently open chat room
-  const [openedChatRoomId, setOpenedChatRoomId] = useState<number>(0)
+  // all users
+  const [usersMap, usersActions] = useMap<number, TUserMinimal>()
 
   // Inital socket connection & handle disconnect
-  useEffect(() => {
+  useEffectOnce(() => {
     socket.connect()
 
     return () => {
       socket.disconnect()
     }
-  }, [])
+  })
 
   // Send inital credentials
-  useEffect(() => {
+  useEffectOnce(() => {
     socket.emit("newConnection", token, userData)
+
+    socket.emit("getUserChatRooms", token, userData, setChatRooms)
+
+    socket.emit("getUsers", token, userData, (res) => {
+      if (res.ok) {
+        console.log("got all users", res.data)
+        res.data.forEach((user) => {
+          usersActions.set(user.id, user)
+        })
+      } else {
+        console.error(res.message)
+      }
+    })
 
     if (!userData.isEmailVerified) {
       toast({
@@ -78,120 +77,65 @@ export const ChatProvider = ({ children }: PropsWithChildren) => {
           "Go to your email service and confirm your email. This will allow you more access to the applicaiton.",
       })
     }
-  }, [token, userData, toast])
+  })
 
   // Register event handlers
   useEffect(() => {
     function onUsersListUpdate(
       type: TUsersListEventType,
-      newUsers: TChatUser[]
+      newUsers: TUserMinimal[]
     ) {
       // console.log("Current users before", type, users)
       // console.log(type, newUsers)
-      const updatedUsers = new Map(allUsers)
-      switch (type) {
-        case "pushAll":
-        case "add":
-        case "update": {
-          newUsers.forEach((user) => {
-            updatedUsers.set(user.id, user)
-          })
-          break
-        }
-        case "remove": {
-          newUsers.forEach((user) => {
-            updatedUsers.delete(user.id)
-          })
-
-          break
-        }
-        default:
+      newUsers.forEach((user) => {
+        if (type === "update") {
+          usersActions.set(user.id, user)
+        } else if (type === "remove") {
+          usersActions.remove(user.id)
+        } else {
           console.error("Unhandled usersListUpdate type:", type)
-      }
-      setAllUsers(updatedUsers)
+        }
+      })
     }
 
     function onServerMessage(newMessage: TMessage, targetChatRoomId: number) {
-      console.log(newMessage)
       console.log(
-        `User ${newMessage.senderData.firstName} send mes: ${newMessage.message} to room id: ${targetChatRoomId}`
+        "new message from server",
+        newMessage,
+        "to room id:",
+        targetChatRoomId
       )
 
-      setChatRooms((chatRooms) => {
-        const newChatRooms = [...chatRooms]
-        const targetRoomIndex = newChatRooms.findIndex(
-          (chatRoom) => chatRoom.id === targetChatRoomId
-        )
+      if (!currentChatRoom || targetChatRoomId !== currentChatRoom.id) {
+        console.log("got message in an not open room")
+        return
+      }
 
-        if (targetRoomIndex === -1) {
-          console.error(
-            "The room that the message from server is searcing for is not found",
-            { newMessage, targetChatRoomId }
-          )
-          return newChatRooms
+      setCurrentChatRoom((chatRoom) => {
+        if (!chatRoom) return null
+
+        chatRoom.messages.unshift(newMessage)
+
+        const newChatRoom = {
+          ...chatRoom,
         }
 
-        if (targetChatRoomId !== openedChatRoomId) {
-          unreadMessagesActions.set(
-            targetChatRoomId,
-            (unreadMessages.get(targetChatRoomId) ?? 0) + 1
-          )
-        }
-
-        newChatRooms[targetRoomIndex].messages.unshift(newMessage)
-
-        return newChatRooms
+        return newChatRoom
       })
     }
 
     function onChatRoomsListEvent(
       type: TChatRoomsListEventType,
-      newChatRooms: ChatRoomSrvModel[]
+      newChatRoom: TChatRoom
     ) {
-      const newChatRoomIds = newChatRooms.map((chatRoom) => chatRoom.id)
-
-      console.log(`${type}`, newChatRooms)
-
-      switch (type) {
-        case "pushAll": {
-          newChatRooms.forEach((chatRoom) =>
-            unreadMessagesActions.set(chatRoom.id, 0)
-          )
-          setChatRooms(newChatRooms)
-
-          break
-        }
-        case "add": {
-          newChatRooms.forEach((chatRoom) =>
-            unreadMessagesActions.set(chatRoom.id, 0)
-          )
-          setChatRooms((currentChatRooms) => [
-            ...currentChatRooms,
-            ...newChatRooms,
-          ])
-          break
-        }
-        case "update": {
-          // delete and add rooms
-          setChatRooms((currnetChatRooms) => [
-            ...currnetChatRooms.filter(
-              ({ id }) => !newChatRoomIds.includes(id)
-            ),
-            ...newChatRooms,
-          ])
-          break
-        }
-        case "remove": {
-          newChatRooms.forEach((chatRoom) =>
-            unreadMessagesActions.remove(chatRoom.id)
-          )
-          setChatRooms((currentChatRooms) =>
-            currentChatRooms.filter(({ id }) => !newChatRoomIds.includes(id))
-          )
-          break
-        }
-        default:
-          console.error("Unhandled chatRoomsListEvent type:", type)
+      if (type === "add") {
+        console.log("Adding new chat room", newChatRoom)
+        setChatRooms((chatRooms) => [...chatRooms, newChatRoom])
+      } else if (type === "remove") {
+        throw new Error("NOT IMPLEMENTED")
+        // TODO: implement this
+      } else {
+        console.error("Unhandled chatRoomsListEvent type:", type)
       }
     }
 
@@ -204,90 +148,75 @@ export const ChatProvider = ({ children }: PropsWithChildren) => {
       socket.off("serverMessage", onServerMessage)
       socket.off("chatRoomsListEvent", onChatRoomsListEvent)
     }
-  }, [allUsers, unreadMessagesActions, openedChatRoomId, unreadMessages])
-
-  // Actions needed when the selected chat room changes
-  useEffect(() => {
-    const targetChatRooms = chatRooms.filter(
-      (chatRoom) => chatRoom.id === openedChatRoomId
-    )
-    if (targetChatRooms.length < 1) {
-      setMessages([])
-      console.error(
-        `room with id: ${openedChatRoomId} not found in chat rooms:`,
-        chatRooms
-      )
-    } else if (targetChatRooms.length === 1) {
-      setMessages(targetChatRooms[0].messages)
-
-      const chatRoomUsers = []
-
-      for (const id of targetChatRooms[0].userIds) {
-        const user = allUsers.get(id)
-        if (!user) {
-          console.log(`id: ${id} not found in allUsers`)
-        } else {
-          chatRoomUsers.push(user)
-        }
-      }
-
-      setCurrentChatRoomUsers(chatRoomUsers)
-
-      console.log("target room foumd. setting messages and users")
-    } else {
-      setMessages([])
-      console.error("found multiple rooms with same id", targetChatRooms)
-    }
-  }, [openedChatRoomId, chatRooms, allUsers])
+  }, [currentChatRoom, usersActions])
 
   function sendMessage(message: string) {
-    if (message.length === 0) return
+    if (message.length === 0 || currentChatRoom === null) return
 
-    console.log("sending message", message, openedChatRoomId, chatRooms)
+    console.log(
+      `sending message: ${message} to target room with id: ${currentChatRoom.id}`
+    )
 
-    socket.emit("clientMessage", token, userData, message, openedChatRoomId)
+    socket.emit("clientMessage", token, userData, message, currentChatRoom.id)
   }
 
   function createChatRoom(chatRoomName: string, userIds: number[]) {
     if (chatRoomName.length === 0 || userIds.length === 0) return
+
     socket.emit(
       "createChatRoom",
       token,
       userData,
       chatRoomName,
       userIds,
-      (newChatRoomId) => {
-        console.log("selecting new room", newChatRoomId)
-        setOpenedChatRoomId(newChatRoomId)
+      (newChatRoom) => {
+        setCurrentChatRoom(newChatRoom)
       }
     )
   }
 
   function openChatRoom(id: number) {
-    const chatRoom = chatRooms.filter((chatRoom) => chatRoom.id === id)[0]
-    unreadMessagesActions.set(id, 0)
-    setMessages(chatRoom.messages)
-    setOpenedChatRoomId(id)
+    if (id < 0) {
+      setCurrentChatRoom(null)
+      return
+    }
+
+    socket.emit("getChatRoom", token, userData, id, (res) => {
+      if (res.ok) {
+        setCurrentChatRoom(res.data)
+        console.log("current open chat room", res.data)
+      } else {
+        setCurrentChatRoom(null)
+        console.error(res.message)
+      }
+    })
   }
 
   /**
    * Returns all users that are not the current user
    */
-  function getOtherUsers() {
-    return Array.from(allUsers.values()).filter(
+  function getOtherUsers(): TUserMinimal[] {
+    return Array.from(usersMap.values()).filter(
       (user) => user.id !== userData.id
     )
   }
 
+  function getUserById(id: number): TUserMinimal {
+    const targetUser = usersMap.get(id)
+    if (!targetUser) {
+      throw new Error(`looking for user id: ${id}, wasn't able to find him`)
+    }
+    return targetUser
+  }
+
   const value: TChatContext = {
     openChatRoom,
-    openedChatRoomId,
-    messages,
-    allUsers,
-    unreadMessages,
-    currentChatRoomUsers,
     chatRooms,
+    currentChatRoom,
+    users: Array.from(usersMap.values()),
+    getUserById,
     sendMessage,
+
     createChatRoom,
     getOtherUsers,
   }
