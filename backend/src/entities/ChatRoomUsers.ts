@@ -17,10 +17,14 @@ export class ChatRoomUsers extends BaseEntity {
     @Column({ type: 'timestamp' })
     lastReadAt!: Date
 
-    @ManyToOne(() => User, (user) => user.id)
+    @ManyToOne(() => User, (user) => user.id, {
+        onDelete: 'CASCADE',
+    })
     user!: User
 
-    @ManyToOne(() => ChatRoom, (chatRoom) => chatRoom.id)
+    @ManyToOne(() => ChatRoom, (chatRoom) => chatRoom.id, {
+        onDelete: 'CASCADE',
+    })
     chatRoom!: ChatRoom
 
     @UpdateDateColumn({ type: 'timestamp' })

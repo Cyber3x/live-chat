@@ -7,13 +7,9 @@ import {
     PrimaryGeneratedColumn,
 } from 'typeorm'
 import { ChatRoom } from './ChatRoom'
-import { TUser, User } from './User'
+import { User } from './User'
+import { TMessage } from '../sockets/eventTypes'
 
-export type TMessage = {
-    message: string
-    senderData: TUser
-    sentAt: Date
-}
 @Entity()
 export class Message extends BaseEntity {
     @PrimaryGeneratedColumn()
@@ -23,15 +19,26 @@ export class Message extends BaseEntity {
     message!: string
 
     @ManyToOne(() => ChatRoom, (chatRoom) => chatRoom.messages, {
-        cascade: ['remove'],
+        onDelete: 'CASCADE',
         nullable: true,
     })
     chatRoom!: ChatRoom
 
-    @ManyToOne(() => User, (user) => user.sentMessages)
+    @ManyToOne(() => User, (user) => user.sentMessages, {
+        onDelete: 'CASCADE',
+    })
     sentBy!: User
 
     @Column()
     @CreateDateColumn({ type: 'timestamp' })
     createdAt!: Date
+
+    get publicVersion(): TMessage {
+        return {
+            id: this.id,
+            message: this.message,
+            senderId: this.sentBy.id,
+            sentAt: this.createdAt,
+        }
+    }
 }

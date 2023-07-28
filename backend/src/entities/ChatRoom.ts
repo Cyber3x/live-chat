@@ -19,7 +19,10 @@ export class ChatRoom extends BaseEntity {
     name!: string
 
     // createdby is NULL just in case that this is a global room created by the server
-    @ManyToOne(() => User, (user) => user.id, { nullable: true })
+    @ManyToOne(() => User, (user) => user.id, {
+        nullable: true,
+        onDelete: 'CASCADE',
+    })
     createdBy!: User
 
     @OneToMany(() => ChatRoomUsers, (chatRoomUsers) => chatRoomUsers.chatRoom)
